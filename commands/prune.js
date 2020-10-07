@@ -10,7 +10,7 @@ module.exports =
         // Check if a member has a specific permission on the guild!
         if (!message.member.hasPermission('MANAGE_MESSAGES'))
         {
-            message.channel.send('You don\'t have the permissions to use this command.');
+            message.channel.send('Well, this is awkwards. You don\'t have the permissions to use this command.');
             return;
         }
 
