@@ -1,5 +1,3 @@
-const { modPrefix } = require('../config.json');
-
 module.exports =
 {
     name: 'kickVoice',
