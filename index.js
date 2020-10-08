@@ -151,9 +151,9 @@ client.once('ready', () =>
     client.user.setPresence({
         status: 'online',
         activity: {
-            name: 'with ' + prefix + 'help',
+            name: `over ${client.guilds.cache.size} | prefix: ${prefix}`,
             // PLAYING: WATCHING: LISTENING: STREAMING:
-            type: 'PLAYING',
+            type: 'WATCHING',
         },
     });
 });
