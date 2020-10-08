@@ -17,7 +17,7 @@ module.exports =
             data.push('Here\'s a list of all my commands:');
 
             for (const cmd of modCommands.map(command => command.name))
-                data.push(`:white_small_square: **${cmd.name}**`);
+                data.push(`:white_small_square: **${cmd}**`);
             // data.push(modCommands.map(command => command.name).join('\n'));
             data.push(`\nYou can send \`${modPrefix}help [command name]\` to get info on a specific command!`);
 
