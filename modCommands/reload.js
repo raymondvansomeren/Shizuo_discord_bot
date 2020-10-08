@@ -1,3 +1,5 @@
+const { ownerID } = require('../config.json');
+
 module.exports =
 {
     name: 'reload',
@@ -6,7 +8,7 @@ module.exports =
     execute(bot, message, args)
     {
         // TODO change to var OWNER (or something like that)
-        if (message.author.id === '270871921137025024')
+        if (message.author.id === ownerID)
         {
             if (!args.length)
                 return message.channel.send(`You didn't pass any command to reload, ${message.author}!`);
