@@ -8,9 +8,7 @@ client.commands = new Discord.Collection();
 fs.readdir('./commands/', (err, files) =>
 {
     if (err)
-    {
         console.log(err);
-    }
 
     const jsfile = files.filter(f => f.split('.').pop() === 'js');
 
@@ -34,9 +32,7 @@ client.on('message', async message =>
 {
     message.content = message.content.toLowerCase();
     if(message.author.bot || message.channel.type === 'dm' || !message.content.startsWith(prefix))
-    {
         return;
-    }
 
     const args = message.content.slice(prefix.length).trim().split(/ +/);
     const commandName = args.shift().toLowerCase();
@@ -45,14 +41,10 @@ client.on('message', async message =>
         || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 
     if (!command)
-    {
         return;
-    }
 
     if (!cooldowns.has(command.name))
-    {
         cooldowns.set(command.name, new Discord.Collection());
-    }
 
     const now = Date.now();
     const timestamps = cooldowns.get(command.name);

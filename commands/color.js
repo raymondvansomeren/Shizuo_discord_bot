@@ -18,13 +18,9 @@ module.exports =
             for (const i in colors)
             {
                 if (colors[i].color.toLowerCase() !== 'none')
-                {
                     botembed.addField(colors[i].color, `#${colors[i].value}`);
-                }
                 else
-                {
                     botembed.addField(colors[i].color, colors[i].value);
-                }
             }
 
             message.channel.send(botembed);

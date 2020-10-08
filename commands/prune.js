@@ -9,10 +9,7 @@ module.exports =
     {
         // Check if a member has a specific permission on the guild!
         if (!message.member.hasPermission('MANAGE_MESSAGES'))
-        {
-            message.channel.send('Well, this is awkwards. You don\'t have the permissions to use this command.');
-            return;
-        }
+            return message.channel.send('Well, this is awkwards. You don\'t have the permissions to use this command.');
 
         try
         {
@@ -28,13 +25,10 @@ module.exports =
             }
             let messagecount = parseInt(args[0]);
             if (messagecount >= 100)
-            {
                 messagecount = 99;
-            }
             else if (messagecount < 1)
-            {
                 messagecount = 1;
-            }
+
             message.channel.bulkDelete(messagecount + 1, true);
 
             if (messagecount === 1)
