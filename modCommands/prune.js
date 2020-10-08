@@ -9,53 +9,59 @@ module.exports =
     {
         // Check if a member has a specific permission on the guild!
         if (!message.member.hasPermission('MANAGE_MESSAGES'))
-            return message.channel.send('Well, this is awkwards. You don\'t have the permissions to use this command.');
+            return message.channel.send('You don\'t have the permissions to use this command');
 
-        try
+        if (!isNaN(args[0]))
         {
-            if (isNaN(args[0]))
-            {
-                message.channel.send('Ehm, you should give me a number of messages to delete.')
-                    .then(msg =>
-                    {
-                        msg.delete({ timeout: 5000 });
-                    });
-                message.delete({ timeout: 5000 });
-                return;
-            }
             let messagecount = parseInt(args[0]);
-            if (messagecount >= 100)
-                messagecount = 99;
-            else if (messagecount < 1)
-                messagecount = 1;
-
-            message.channel.bulkDelete(messagecount + 1, true);
-
-            if (messagecount === 1)
+            try
             {
-                message.reply(`${messagecount} message has been deleted succesfully.`)
-                    .then(msg =>
+                if (messagecount >= 100)
+                    messagecount = 99;
+
+                message.channel.messages.fetch({ limit: (messagecount + 1) })
+                    .then(messages =>
                     {
-                        msg.delete({ timeout: 5000 });
+                        message.channel.bulkDelete(messages, true)
+                            .then(() =>
+                            {
+                                if (messages.size - 1 > 0)
+                                {
+                                    message.reply(`${messages.size - 1} messages have been deleted succesfully.`)
+                                        .then(msg =>
+                                        {
+                                            msg.delete({ timeout: 5000 });
+                                        });
+                                }
+                                else
+                                {
+                                    message.reply('No messages were deleted.')
+                                        .then(msg =>
+                                        {
+                                            msg.delete({ timeout: 5000 });
+                                        });
+                                }
+                            })
+                            .catch(e =>
+                            {
+                                console.err('Error: ' + e);
+                            });
                     });
             }
-            else
+            catch(err)
             {
-                message.reply(`${messagecount} messages have been deleted succesfully.`)
+                message.channel.send('No message got deleted')
                     .then(msg =>
                     {
+                        console.log(err);
                         msg.delete({ timeout: 5000 });
+                        message.delete({ timeout: 5000 });
                     });
             }
         }
-        catch(err)
+        else
         {
-            message.channel.send('No messages got deleted.')
-                .then(msg =>
-                {
-                    msg.delete({ timeout: 5000 });
-                });
-            message.delete({ timeout: 5000 });
+            message.channel.send('You didn\'t send me a number.');
         }
     },
 };

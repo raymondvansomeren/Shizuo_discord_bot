@@ -7,32 +7,68 @@ module.exports =
     cooldown: 10,
     execute(bot, message, args)
     {
-        // TODO change to var OWNER (or something like that)
         if (message.author.id === ownerID)
         {
             if (!args.length)
                 return message.channel.send(`You didn't pass any command to reload, ${message.author}!`);
 
             const commandName = args[0].toLowerCase();
-            const command = message.client.commands.get(commandName)
-                || message.client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 
-            if (!command)
-                return message.channel.send(`There is no command with name or alias \`${commandName}\`, ${message.author}!`);
-
-            delete require.cache[require.resolve(`./${command.name}.js`)];
-            try
+            // Default commands
+            for (;;)
             {
-                const newCommand = require(`./${command.name}.js`);
-                message.client.commands.set(newCommand.name, newCommand);
-            }
-            catch (error)
-            {
-                console.error(error);
-                message.channel.send(`There was an error while reloading a command \`${command.name}\`:\n\`${error.message}\``);
+                const commands = message.client.commands;
+                const command = commands.get(commandName)
+                    || commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+
+                if (!command)
+                {
+                    message.channel.send(`There is no default command with name or alias \`${commandName}\`!`);
+                    break;
+                }
+
+                delete require.cache[require.resolve(`../commands/${command.name}.js`)];
+                try
+                {
+                    const newCommand = require(`../commands/${command.name}.js`);
+                    commands.set(newCommand.name, newCommand);
+                    message.channel.send(`Default command \`${command.name}\` was reloaded!`);
+                }
+                catch (error)
+                {
+                    console.error(error);
+                    message.channel.send(`There was an error while reloading a default command \`${command.name}\`:\n\`${error.message}\`\nPlease contact the dev: \`raymond570#2966\``);
+                }
+                break;
             }
 
-            message.channel.send(`Command \`${command.name}\` was reloaded!`);
+            // Moderation commands
+            for (;;)
+            {
+                const commands = message.client.modCommands;
+                const command = commands.get(commandName)
+                    || commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+
+                if (!command)
+                {
+                    message.channel.send(`There is no moderation command with name or alias \`${commandName}\`!`);
+                    break;
+                }
+
+                delete require.cache[require.resolve(`../modCommands/${command.name}.js`)];
+                try
+                {
+                    const newCommand = require(`../modCommands/${command.name}.js`);
+                    commands.set(newCommand.name, newCommand);
+                    message.channel.send(`Moderation command \`${command.name}\` was reloaded!`);
+                }
+                catch (error)
+                {
+                    console.error(error);
+                    message.channel.send(`There was an error while reloading a moderation command \`${command.name}\`:\n\`${error.message}\`\nPlease contact the dev: \`raymond570#2966\``);
+                }
+                break;
+            }
         }
         else
         {
