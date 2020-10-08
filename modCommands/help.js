@@ -15,7 +15,10 @@ module.exports =
         if (!args.length)
         {
             data.push('Here\'s a list of all my commands:');
-            data.push(modCommands.map(command => command.name).join('\n'));
+
+            for (const cmd of modCommands)
+                data.push(`:white_small_square: *${cmd.name}*`);
+            // data.push(modCommands.map(command => command.name).join('\n'));
             data.push(`\nYou can send \`${modPrefix}help [command name]\` to get info on a specific command!`);
 
             return message.channel.send(data, { split: true });
