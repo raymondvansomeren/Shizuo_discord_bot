@@ -58,7 +58,7 @@ fs.readdir('./modCommands/', (err, files) =>
 
 client.on('message', async message =>
 {
-    message.content = message.content.toLowerCase();
+    // message.content = message.content.toLowerCase();
     if (message.author.bot || message.channel.type === 'dm' || (!message.content.startsWith(prefix) && !message.content.startsWith(modPrefix)))
         return;
 
