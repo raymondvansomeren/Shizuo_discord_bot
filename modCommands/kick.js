@@ -34,7 +34,7 @@ module.exports =
             {
                 args.shift();
                 const reason = args.join(' ');
-                toKick.kick(reason);
+                toKick.kick({ reason: reason });
                 message.channel.send(`Succesfully kicked ${toKick} with reason \`${reason}\``)
                     .then(msg =>
                     {

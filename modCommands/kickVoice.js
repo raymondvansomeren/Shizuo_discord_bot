@@ -35,7 +35,7 @@ module.exports =
             {
                 args.shift();
                 const reason = args.join(' ');
-                toKick.voice.kick(reason);
+                toKick.voice.kick({ reason: reason });
                 message.channel.send(`Succesfully kicked ${toKick} from the voice channel with reason \`${reason}\`.`)
                     .then(msg =>
                     {

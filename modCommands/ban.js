@@ -23,7 +23,7 @@ module.exports =
 
             if (args.length === 1)
             {
-                toBan.ban({ reason: 'None' });
+                toBan.ban();
                 message.channel.send(`Succesfully banned ${toBan}.`)
                     .then(msg =>
                     {
