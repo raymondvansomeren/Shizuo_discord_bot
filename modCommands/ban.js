@@ -8,7 +8,9 @@ module.exports =
     {
         if (message.member.hasPermission('BAN_MEMBERS'))
         {
-            const toBan = message.mentions.members.first();
+            const toBan = message.guild.member(message.mentions.users.first()) || message.guild.members.get(args[0]);
+            if (!toBan)
+                return message.channel.send('Invalid User');
             if (message.author.id === toBan.id)
             {
                 return message.channel.send('You can\'t ban yourself.')
@@ -21,8 +23,8 @@ module.exports =
 
             if (args.length === 1)
             {
-                toBan.ban();
-                message.channel.send(`Succesfully banned ${toBan} from the voice channel.`)
+                toBan.ban({ reason: 'None' });
+                message.channel.send(`Succesfully banned ${toBan}.`)
                     .then(msg =>
                     {
                         message.delete({ timeout: 5000 });
@@ -33,8 +35,8 @@ module.exports =
             {
                 args.shift();
                 const reason = args.join(' ');
-                toBan.ban(reason);
-                message.channel.send(`Succesfully banned ${toBan} from the voice channel with reason \`${reason}\`.`)
+                toBan.ban({ reason: reason });
+                message.channel.send(`Succesfully banned ${toBan} with reason \`${reason}\`.`)
                     .then(msg =>
                     {
                         message.delete({ timeout: 5000 });
