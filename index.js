@@ -151,7 +151,7 @@ client.once('ready', () =>
     client.user.setPresence({
         status: 'online',
         activity: {
-            name: `over ${client.guilds.cache.size} | prefix: ${prefix}`,
+            name: `over ${client.guilds.cache.size} servers | prefix: ${prefix}`,
             // PLAYING: WATCHING: LISTENING: STREAMING:
             type: 'WATCHING',
         },
