@@ -12,7 +12,7 @@ module.exports =
         // message.mentions.members.first().voice.kick();
         if (message.member.hasPermission('KICK_MEMBERS'))
         {
-            const toKick = message.mentions.members.first().voice;
+            const toKick = message.mentions.members.first();
             if (message.author.id === toKick.id)
             {
                 return message.channel.send('You can\'t kick yourself.')
@@ -25,7 +25,7 @@ module.exports =
 
             if (args.length === 1)
             {
-                toKick.kick();
+                toKick.voice.kick();
                 message.channel.send(`Succesfully kicked ${toKick} from the voice channel.`)
                     .then(msg =>
                     {
@@ -37,7 +37,7 @@ module.exports =
             {
                 args.shift();
                 const reason = args.join(' ');
-                toKick.kick(reason);
+                toKick.voice.kick(reason);
                 message.channel.send(`Succesfully kicked ${toKick} from the voice channel with reason \`${reason}\`.`)
                     .then(msg =>
                     {
