@@ -7,6 +7,15 @@ module.exports =
     cooldown: 5,
     execute(bot, message, args)
     {
+        if (args.length === 0)
+        {
+            return message.channel.send('You need to mention someone.')
+                .then(msg =>
+                {
+                    message.delete({ timeout: 5000 });
+                    msg.delete({ timeout: 5000 });
+                });
+        }
         if (message.member.hasPermission('KICK_MEMBERS'))
         {
             const toKick = message.mentions.members.first();
