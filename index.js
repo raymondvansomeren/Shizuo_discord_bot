@@ -156,7 +156,7 @@ client.on('message', async message =>
 
     if (!prefixes.has(message.guild.id))
     {
-        connection.query(`SELECT Prefix, ModPrefix FROM guildsettings WHERE Guild = '${message.guild.id}';`,
+        await connection.query(`SELECT Prefix, ModPrefix FROM guildsettings WHERE Guild = '${message.guild.id}';`,
             function(error, results, fields)
             {
                 if (error)
