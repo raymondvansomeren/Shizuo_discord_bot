@@ -114,6 +114,8 @@ client.on('guildDelete', async guild =>
     });
 });
 
+const escapeRegex = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); //TODO
+
 client.on('message', async message =>
 {
     if (message.author.bot || message.channel.type === 'dm')
@@ -127,27 +129,38 @@ client.on('message', async message =>
 
             const prefix = results[0].Prefix;
             const modPrefix = results[0].ModPrefix;
-            // console.log(`message.guild.id = ${message.guild.id} + results[0].Prefix = ${results[0].Prefix} + results[0].ModPrefix = ${results[0].ModPrefix}`);
-            if(!message.content.startsWith(prefix) && !message.content.startsWith(modPrefix))
+
+            const prefixRegex = new RegExp(`^(<@!?${client.user.id}>|${escapeRegex(prefix)}|${escapeRegex(modPrefix)})\\s*`);//TODO
+
+            if (!prefixRegex.test(message.content))
                 return;
 
-            // Default (everyone) commands
-            if (message.content.startsWith(prefix))
-            {
-                const args = message.content.slice(prefix.length).trim().split(/ +/);
-                const commandName = args.shift().toLowerCase();
+            //TODO if(!message.content.startsWith(prefix) && !message.content.startsWith(modPrefix))
+            //TODO     return;
 
-                const command = client.commands.get(commandName)
-                    || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+            const [, matchedPrefix] = message.content.match(prefixRegex);   //TODO
+            const args = message.content.slice(matchedPrefix.length).trim().split(/ +/);   //TODO
+            const commandName = args.shift().toLowerCase();   //TODO
+
+            // Default (everyone) commands
+            //TODO if (message.content.startsWith(modPrefix))
+            //TODO {
+            if (message.content.startsWith(modPrefix))
+            {
+                //TODO const args = message.content.slice(modPrefix.length).trim().split(/ +/);
+                //TODO const commandName = args.shift().toLowerCase();
+
+                const command = client.modCommands.get(commandName)
+                    || client.modCommands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 
                 if (!command)
                     return;
 
-                if (!cooldowns.has(command.name))
-                    cooldowns.set(command.name, new Discord.Collection());
+                if (!modCooldowns.has(command.name))
+                    modCooldowns.set(command.name, new Discord.Collection());
 
                 const now = Date.now();
-                const timestamps = cooldowns.get(command.name);
+                const timestamps = modCooldowns.get(command.name);
                 const cooldownAmount = (command.cooldown || 3) * 1000;
 
                 if (timestamps.has(message.author.id))
@@ -172,24 +185,27 @@ client.on('message', async message =>
                     console.error(e);
                     message.reply('there was an error trying to execute that command!');
                 }
-            }
+            //TODO }
             // Moderation commands
-            else if (message.content.startsWith(modPrefix))
+            //TODO else if (message.content.startsWith(prefix))
+            }
+            else
             {
-                const args = message.content.slice(modPrefix.length).trim().split(/ +/);
-                const commandName = args.shift().toLowerCase();
+            //TODO{
+                //TODO const args = message.content.slice(prefix.length).trim().split(/ +/);
+                //TODO const commandName = args.shift().toLowerCase();
 
-                const command = client.modCommands.get(commandName)
-                    || client.modCommands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+                const command = client.commands.get(commandName)
+                    || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 
                 if (!command)
                     return;
 
-                if (!modCooldowns.has(command.name))
-                    modCooldowns.set(command.name, new Discord.Collection());
+                if (!cooldowns.has(command.name))
+                    cooldowns.set(command.name, new Discord.Collection());
 
                 const now = Date.now();
-                const timestamps = modCooldowns.get(command.name);
+                const timestamps = cooldowns.get(command.name);
                 const cooldownAmount = (command.cooldown || 3) * 1000;
 
                 if (timestamps.has(message.author.id))
