@@ -96,7 +96,7 @@ fs.readdir('./modCommands/', (err, files) =>
 
 client.on('guildCreate', async guild =>
 {
-    console.log('Left a server!');
+    console.log('New server joined!');
     client.user.setPresence({
         status: 'online',
         activity: {
@@ -136,9 +136,9 @@ client.on('guildCreate', async guild =>
         });
 });
 
-client.on('guildCreate', async guild =>
+client.on('guildDelete', async guild =>
 {
-    console.log('New server joined!');
+    console.log('Left a server!');
     client.user.setPresence({
         status: 'online',
         activity: {
@@ -167,7 +167,7 @@ client.on('message', async message =>
             });
     }
 
-    if((!message.content.startsWith(prefixes.get(message.guild.id).prefix) && !message.content.startsWith(prefixes.get(message.guild.id).modPrefix)))   //TODO prefix fix
+    if(!message.content.startsWith(prefixes.get(message.guild.id).prefix) && !message.content.startsWith(prefixes.get(message.guild.id).modPrefix))   //TODO prefix fix
         return;
 
     // Default (everyone) commands
