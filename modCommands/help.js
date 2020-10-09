@@ -1,4 +1,4 @@
-const { modPrefix } = require('../config.json');
+const { defaultModPrefix } = require('../config.json');
 
 module.exports =
 {
@@ -17,7 +17,7 @@ module.exports =
             data.push('Here\'s a list of all my commands:');
             for (const cmd of modCommands.map(command => command.name))
                 data.push(`:white_small_square: **${cmd}**`);
-            data.push(`\nYou can send \`${modPrefix}help [command name]\` to get info on a specific command!`);
+            data.push(`\nYou can send \`${defaultModPrefix}help [command name]\` to get info on a specific command!`);
 
             return message.channel.send(data, { split: true });
         }
@@ -35,7 +35,7 @@ module.exports =
         if (command.description)
             data.push(`**Description:** ${command.description}`);
         if (command.usage)
-            data.push(`**Usage:** ${modPrefix}${command.name} ${command.usage}`);
+            data.push(`**Usage:** ${defaultModPrefix}${command.name} ${command.usage}`);
 
         data.push(`**Cooldown:** ${command.cooldown || 3} second(s)`);
 

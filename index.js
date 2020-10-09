@@ -78,8 +78,8 @@ client.on('guildCreate', async guild =>
                 connection.query(`INSERT INTO guildsettings (Guild, Prefix, ModPrefix) VALUES (${guild.id}, ${defaultPrefix}, ${defaultModPrefix});`,
                     function(error2, results2, fields2)
                     {
-                        if (error)
-                            return console.log(error);
+                        if (error2)
+                            return console.log(error2);
                     });
             }
             else
@@ -88,8 +88,8 @@ client.on('guildCreate', async guild =>
                 connection.query(`UPDATE guildsettings SET Prefix = ${defaultPrefix}, ModPrefix = ${defaultModPrefix} WHERE Guild = ${guild.id});`,
                     function(error3, results3, fields3)
                     {
-                        if (error)
-                            return console.log(error);
+                        if (error3)
+                            return console.log(error3);
                     });
             }
         });
