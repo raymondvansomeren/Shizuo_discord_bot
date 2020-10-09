@@ -66,6 +66,16 @@ fs.readdir('./modCommands/', (err, files) =>
 
 client.on('guildCreate', async guild =>
 {
+    console.log('Ready!');
+    client.user.setPresence({
+        status: 'online',
+        activity: {
+            name: `over ${client.guilds.cache.size} servers | prefix: ${prefix}`,
+            // PLAYING: WATCHING: LISTENING: STREAMING:
+            type: 'WATCHING',
+        },
+    });
+
     connection.query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
         function(error, results, fields)
         {
@@ -91,6 +101,19 @@ client.on('guildCreate', async guild =>
                     });
             }
         });
+});
+
+client.on('guildCreate', async guild =>
+{
+    console.log('Ready!');
+    client.user.setPresence({
+        status: 'online',
+        activity: {
+            name: `over ${client.guilds.cache.size} servers | prefix: ${prefix}`,
+            // PLAYING: WATCHING: LISTENING: STREAMING:
+            type: 'WATCHING',
+        },
+    });
 });
 
 client.on('message', async message =>
