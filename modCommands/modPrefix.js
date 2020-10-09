@@ -20,7 +20,7 @@ module.exports =
         if (args[0].length > 5)
             return message.channel.send('The modPrefix may not surpass 5 characters.');
 
-        connection.query(`UPDATE guildsettings SET modPrefix = ${args[0]}`,
+        connection.query(`UPDATE guildsettings SET modPrefix = '${args[0]}'`,
             function(error, results, fields)
             {
                 if (error)
@@ -28,7 +28,7 @@ module.exports =
                     message.channel.send(error);
                     return console.log(error);
                 }
-                message.channel.send(`Succesfully changed the moderation prefix to ${args[0]}`);
+                message.channel.send(`Succesfully changed the moderation prefix to '${args[0]}'`);
             });
     },
 };
