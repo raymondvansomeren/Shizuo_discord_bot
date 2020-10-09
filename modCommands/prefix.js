@@ -19,7 +19,7 @@ module.exports =
         if (args[0].length > 5)
             return message.channel.send('The prefix may not surpass 5 characters.');
 
-        connection.query(`UPDATE guildsettings SET prefix = '${args[0]}'`,
+        connection.query(`UPDATE guildsettings SET Prefix = '${args[0]}'`,
             function(error, results, fields)
             {
                 if (error)
