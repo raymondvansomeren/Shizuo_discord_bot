@@ -20,7 +20,7 @@ const modCooldowns = new Discord.Collection();
 // function changePrefix(guild, prefix, modPrefix, prefixesToChange)
 // {
 
-//     connection.query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
+//     connection.promise().query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
 //         function(error, results, fields)
 //         {
 //             if (error)
@@ -28,7 +28,7 @@ const modCooldowns = new Discord.Collection();
 
 //             if (results.length < 1 || results == undefined)
 //             {
-//                 connection.query(`INSERT INTO guildsettings (Guild, Prefix, ModPrefix) VALUES ('${guild.id}', '${prefix}', '${modPrefix}');`,
+//                 connection.promise().query(`INSERT INTO guildsettings (Guild, Prefix, ModPrefix) VALUES ('${guild.id}', '${prefix}', '${modPrefix}');`,
 //                     function(error2, results2, fields2)
 //                     {
 //                         if (error2)
@@ -37,7 +37,7 @@ const modCooldowns = new Discord.Collection();
 //             }
 //             else
 //             {
-//                 connection.query(`UPDATE guildsettings SET Prefix = '${prefix}', ModPrefix = '${modPrefix}' WHERE Guild = '${guild.id}';`,
+//                 connection.promise().query(`UPDATE guildsettings SET Prefix = '${prefix}', ModPrefix = '${modPrefix}' WHERE Guild = '${guild.id}';`,
 //                     function(error3, results3, fields3)
 //                     {
 //                         if (error3)
@@ -108,7 +108,7 @@ client.on('guildCreate', async guild =>
 
     // changePrefix(guild, defaultPrefix, defaultModPrefix, prefixes);
 
-    connection.query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
+    connection.promise().query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
         function(error, results, fields)
         {
             if (error)
@@ -116,7 +116,7 @@ client.on('guildCreate', async guild =>
 
             if (results.length < 1 || results == undefined)
             {
-                connection.query(`INSERT INTO guildsettings (Guild, Prefix, ModPrefix) VALUES ('${guild.id}', '${defaultPrefix}', '${defaultModPrefix}');`,
+                connection.promise().query(`INSERT INTO guildsettings (Guild, Prefix, ModPrefix) VALUES ('${guild.id}', '${defaultPrefix}', '${defaultModPrefix}');`,
                     function(error2, results2, fields2)
                     {
                         if (error2)
@@ -125,7 +125,7 @@ client.on('guildCreate', async guild =>
             }
             else
             {
-                connection.query(`UPDATE guildsettings SET Prefix = '${defaultPrefix}', ModPrefix = '${defaultModPrefix}' WHERE Guild = '${guild.id}';`,
+                connection.promise().query(`UPDATE guildsettings SET Prefix = '${defaultPrefix}', ModPrefix = '${defaultModPrefix}' WHERE Guild = '${guild.id}';`,
                     function(error3, results3, fields3)
                     {
                         if (error3)
@@ -156,7 +156,7 @@ client.on('message', async message =>
 
     if (!prefixes.has(message.guild.id))
     {
-        await connection.query(`SELECT Prefix, ModPrefix FROM guildsettings WHERE Guild = '${message.guild.id}';`,
+        await connection.promise().query(`SELECT Prefix, ModPrefix FROM guildsettings WHERE Guild = '${message.guild.id}';`,
             function(error, results, fields)
             {
                 if (error)
