@@ -21,6 +21,17 @@ module.exports =
         if (args[0].length > 5)
             return message.channel.send('The prefix may not surpass 5 characters.');
 
+        connection.query(`SELECT ModPrefix FROM guildsettings WHERE Guild = '${message.guild.id}'`,
+            function(error, results, fields)
+            {
+                if (error)
+                {
+                    message.channel.send(error);
+                    return console.log(error);
+                }
+                return message.channel.send('Well, this ends the prefix');
+            });
+
         connection.query(`UPDATE guildsettings SET Prefix = '${args[0]}' WHERE Guild = '${message.guild.id}'`,
             function(error, results, fields)
             {

@@ -13,6 +13,7 @@ const connection = mysql.createConnection({
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
 client.modCommands = new Discord.Collection();
+client.prefixes = new Map();
 const cooldowns = new Discord.Collection();
 const modCooldowns = new Discord.Collection();
 
