@@ -1,6 +1,6 @@
 module.exports =
 {
-    name: 'kickVoice',
+    name: 'kickvoice',
     description: 'Kick a user from a voice channel. Reason is optional.',
     aliases: ['kv'],
     usage: '[mention] [reason]',

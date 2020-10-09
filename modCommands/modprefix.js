@@ -10,9 +10,9 @@ const connection = mysql.createConnection({
 
 module.exports =
 {
-    name: 'modPrefix',
+    name: 'modprefix',
     description: 'Used to change the prefix for the moderation commands.',
-    aliases: ['mPrefix'],
+    aliases: ['mprefix'],
     usage: '[prefix]',
     cooldown: 3,
     execute(bot, message, args)
