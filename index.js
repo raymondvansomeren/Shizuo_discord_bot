@@ -3,7 +3,7 @@ const fs = require('fs');
 const mysql = require('mysql2');
 const { token, defaultPrefix, defaultModPrefix, dbhost, dbuser, dbpassword, db } = require('./config.json');
 
-let prefixes = new Map();
+// let prefixes = new Map(); TODO
 const connection = mysql.createConnection({
     host     : dbhost,
     user     : dbuser,
@@ -132,7 +132,7 @@ client.on('guildCreate', async guild =>
                             return console.log(error3);
                     });
             }
-            prefixes.set(guild.id, { prefix: defaultPrefix, modPrefix: defaultModPrefix });
+            // prefixes.set(guild.id, { prefix: defaultPrefix, modPrefix: defaultModPrefix }); TODO
         });
 });
 
@@ -154,26 +154,33 @@ client.on('message', async message =>
     if (message.author.bot || message.channel.type === 'dm')
         return;
 
-    if (!prefixes.has(message.guild.id))
-    {
-        connection.query(`SELECT Prefix, ModPrefix FROM guildsettings WHERE Guild = '${message.guild.id}';`,
-            function(error, results, fields)
-            {
-                if (error)
-                    return console.log(error);
+    let prefix, modPrefix;
 
-                prefixes.set(message.guild.id, { prefix: results[0].Prefix, modPrefix: results[0].ModPrefix });
-                console.log(`message.guild.id = ${message.guild.id} + results[0].Prefix = ${results[0].Prefix} + results[0].ModPrefix = ${results[0].ModPrefix}`);
-            });
-    }
+    // if (!prefixes.has(message.guild.id)) TODO
+    // {
+    connection.query(`SELECT Prefix, ModPrefix FROM guildsettings WHERE Guild = '${message.guild.id}';`,
+        function(error, results, fields)
+        {
+            if (error)
+                return console.log(error);
 
-    if(!message.content.startsWith(prefixes.get(message.guild.id).prefix) && !message.content.startsWith(prefixes.get(message.guild.id).modPrefix))   //TODO prefix fix
+            // prefixes.set(message.guild.id, { prefix: results[0].Prefix, modPrefix: results[0].ModPrefix }); TODO
+            prefix = results[0].Prefix;
+            modPrefix = results[0].ModPrefix;
+            console.log(`message.guild.id = ${message.guild.id} + results[0].Prefix = ${results[0].Prefix} + results[0].ModPrefix = ${results[0].ModPrefix}`);
+        });
+    // } TODO
+
+    // if(!message.content.startsWith(prefixes.get(message.guild.id).prefix) && !message.content.startsWith(prefixes.get(message.guild.id).modPrefix)) TODO   //TODO prefix fix
+    if(!message.content.startsWith(prefix) && !message.content.startsWith(modPrefix))   //TODO prefix fix
         return;
 
     // Default (everyone) commands
-    if (message.content.startsWith(prefixes.get(message.guild.id).prefix)) //TODO
+    // if (message.content.startsWith(prefixes.get(message.guild.id).prefix)) //TODO
+    if (message.content.startsWith(prefix)) //TODO
     {
-        const args = message.content.slice(prefixes.get(message.guild.id).prefix.length).trim().split(/ +/);    //TODO
+        // const args = message.content.slice(prefixes.get(message.guild.id).prefix.length).trim().split(/ +/);    //TODO
+        const args = message.content.slice(prefix.length).trim().split(/ +/);    //TODO
         const commandName = args.shift().toLowerCase();
 
         const command = client.commands.get(commandName)
@@ -213,9 +220,11 @@ client.on('message', async message =>
         }
     }
     // Moderation commands
-    else if (message.content.startsWith(prefixes.get(message.guild.id).modPrefix))  //TODO
+    // else if (message.content.startsWith(prefixes.get(message.guild.id).modPrefix))  //TODO
+    else if (message.content.startsWith(modPrefix))  //TODO
     {
-        const args = message.content.slice(prefixes.get(message.guild.id).modPrefix.length).trim().split(/ +/);    //TODO
+        // const args = message.content.slice(prefixes.get(message.guild.id).modPrefix.length).trim().split(/ +/);    //TODO
+        const args = message.content.slice(modPrefix.length).trim().split(/ +/);    //TODO
         const commandName = args.shift().toLowerCase();
 
         const command = client.modCommands.get(commandName)
@@ -247,10 +256,10 @@ client.on('message', async message =>
         try
         {
             command.execute(client, message, args);
-            if (command.name === 'prefix')
-                prefixes.set(message.guild.id, { prefix: args[0], modPrefix: prefixes.get(message.guild.id).modPrefix });
-            else if (command.name === 'modprefix')
-                prefixes.set(message.guild.id, { prefix: prefixes.get(message.guild.id).prefix, modPrefix: args[0] });
+            // if (command.name === 'prefix')
+            //     prefixes.set(message.guild.id, { prefix: args[0], modPrefix: prefixes.get(message.guild.id).modPrefix });
+            // else if (command.name === 'modprefix')
+            //     prefixes.set(message.guild.id, { prefix: prefixes.get(message.guild.id).prefix, modPrefix: args[0] });
         }
         catch (error)
         {
