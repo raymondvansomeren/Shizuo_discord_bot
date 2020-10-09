@@ -28,7 +28,7 @@ module.exports =
                     message.channel.send(error);
                     return console.log(error);
                 }
-                message.channel.send(`Succesfully changed the moderation prefix to '${args[0]}'`);
+                message.channel.send(`Succesfully changed the moderation prefix to \`${args[0]}\``);
             });
     },
 };

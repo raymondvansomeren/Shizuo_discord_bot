@@ -74,7 +74,6 @@ client.on('guildCreate', async guild =>
 
             if (results.length < 1 || results == undefined)
             {
-                console.log('empty');
                 connection.query(`INSERT INTO guildsettings (Guild, Prefix, ModPrefix) VALUES ('${guild.id}', '${defaultPrefix}', '${defaultModPrefix}');`,
                     function(error2, results2, fields2)
                     {
@@ -84,8 +83,7 @@ client.on('guildCreate', async guild =>
             }
             else
             {
-                console.log('not empty');
-                connection.query(`UPDATE guildsettings SET Prefix = '${defaultPrefix}', ModPrefix = '${defaultModPrefix}' WHERE Guild = '${guild.id}');`,
+                connection.query(`UPDATE guildsettings SET Prefix = '${defaultPrefix}', ModPrefix = '${defaultModPrefix}' WHERE Guild = '${guild.id}';`,
                     function(error3, results3, fields3)
                     {
                         if (error3)
