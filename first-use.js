@@ -15,7 +15,7 @@ connection.query(`CREATE TABLE guildsettings (Guild VARCHAR(255) PRIMARY KEY, Pr
             throw error;
     });
 
-connection.query('CREATE TABLE points (User VARCHAR(255) PRIMARY KEY, Guild VARCHAR(255) PRIMARY KEY, Points INT(11) UNSIGNED NOT NULL);',
+connection.query('CREATE TABLE points (User VARCHAR(255), Guild VARCHAR(255), Points INT(11) DEFAULT(0) UNSIGNED NOT NULL);',
     function(error, results, fields)
     {
         if (error)

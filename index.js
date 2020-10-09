@@ -1,10 +1,18 @@
 const Discord = require('discord.js');
 const fs = require('fs');
+const mysql = require('mysql2');
+
+const { token, defaultPrefix, defaultModPrefix, dbhost, dbuser, dbpassword, db } = require('./config.json');
+let prefix = '';
+let modPrefix = '';
+const connection = mysql.createConnection({
+    host     : dbhost,
+    user     : dbuser,
+    password : dbpassword,
+    database : db,
+});
+
 const client = new Discord.Client();
-const { token, prefix, modPrefix } = require('./config.json');
-// const token = require('./config.json').token;
-// const prefix = require('./config.json').prefix;
-// const modPrefix = require('./config.json').modPrefix;
 client.commands = new Discord.Collection();
 client.modCommands = new Discord.Collection();
 const cooldowns = new Discord.Collection();
@@ -54,6 +62,37 @@ fs.readdir('./modCommands/', (err, files) =>
         console.log(`${f} loaded!`);
         client.modCommands.set(props.name, props);
     });
+});
+
+client.on('guildCreate', async guild =>
+{
+    connection.query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
+        function(error, results, fields)
+        {
+            if (error)
+                return console.log(error);
+
+            if (!results[0].Guild)
+            {
+                connection.query(`INSERT INTO guildsettings (Guild, Prefix, ModPrefix) VALUES (${guild.id}, ${defaultPrefix}, ${defaultModPrefix});`,
+                    function(error2, results2, fields2)
+                    {
+                        if (error)
+                            return console.log(error);
+                    });
+            }
+            else
+            {
+                connection.query(`UPDATE guildsettings SET Prefix = ${defaultPrefix}, ModPrefix = ${defaultModPrefix} WHERE Guild = ${guild.id});`,
+                    function(error3, results3, fields3)
+                    {
+                        if (error)
+                            return console.log(error);
+                    });
+            }
+            prefix = defaultPrefix;
+            modPrefix = defaultModPrefix;
+        });
 });
 
 client.on('message', async message =>
