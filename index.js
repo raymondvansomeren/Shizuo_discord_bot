@@ -129,6 +129,7 @@ client.on('message', async message =>
                     return console.log(error);
 
                 prefixes.set(message.guild.id, { prefix: results[0].Prefix, modPrefix: results[0].ModPrefix });
+                console.log(`message.guild.id = ${message.guild.id} + results[0].Prefix = ${results[0].Prefix} + results[0].ModPrefix = ${results[0].ModPrefix}`);
             });
     }
 
