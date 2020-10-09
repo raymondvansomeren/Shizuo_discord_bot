@@ -3,8 +3,7 @@ const fs = require('fs');
 const mysql = require('mysql2');
 
 const { token, defaultPrefix, defaultModPrefix, dbhost, dbuser, dbpassword, db } = require('./config.json');
-let prefix = defaultPrefix;
-let modPrefix = defaultModPrefix;
+let prefixes = new Map();
 const connection = mysql.createConnection({
     host     : dbhost,
     user     : dbuser,
@@ -70,7 +69,7 @@ client.on('guildCreate', async guild =>
     client.user.setPresence({
         status: 'online',
         activity: {
-            name: `over ${client.guilds.cache.size} servers | prefix: ${prefix}`,
+            name: `over ${client.guilds.cache.size} servers`,
             // PLAYING: WATCHING: LISTENING: STREAMING:
             type: 'WATCHING',
         },
@@ -109,7 +108,7 @@ client.on('guildCreate', async guild =>
     client.user.setPresence({
         status: 'online',
         activity: {
-            name: `over ${client.guilds.cache.size} servers | prefix: ${prefix}`,
+            name: `over ${client.guilds.cache.size} servers`,
             // PLAYING: WATCHING: LISTENING: STREAMING:
             type: 'WATCHING',
         },
@@ -118,16 +117,30 @@ client.on('guildCreate', async guild =>
 
 client.on('message', async message =>
 {
-    // message.content = message.content.toLowerCase();
-    if (message.author.bot || message.channel.type === 'dm' || (!message.content.startsWith(prefix) && !message.content.startsWith(modPrefix)))
+    if (message.author.bot || message.channel.type === 'dm')
         return;
 
-    const args = message.content.slice(prefix.length).trim().split(/ +/);
-    const commandName = args.shift().toLowerCase();
+    if (!prefixes.has(message.guild.id))
+    {
+        connection.query(`SELECT Prefix, ModPrefix FROM guildsettings WHERE Guild = '${message.guild.id}';`,
+            function(error, results, fields)
+            {
+                if (error)
+                    return console.log(error);
+
+                prefixes.set(message.guild.id, { prefix: results[0].Prefix, modPrefix: results[0].ModPrefix });
+            });
+    }
+
+    if((!message.content.startsWith(prefixes.get(message.guild.id).prefix) && !message.content.startsWith(prefixes.get(message.guild.id).modPrefix)))   //TODO prefix fix
+        return;
 
     // Default (everyone) commands
-    if (message.content.startsWith(prefix))
+    if (message.content.startsWith(prefixes.get(message.guild.id).prefix)) //TODO
     {
+        const args = message.content.slice(prefixes.get(message.guild.id).prefix.length).trim().split(/ +/);    //TODO
+        const commandName = args.shift().toLowerCase();
+
         const command = client.commands.get(commandName)
             || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 
@@ -165,8 +178,11 @@ client.on('message', async message =>
         }
     }
     // Moderation commands
-    else if (message.content.startsWith(modPrefix))
+    else if (message.content.startsWith(prefixes.get(message.guild.id).modPrefix))  //TODO
     {
+        const args = message.content.slice(prefixes.get(message.guild.id).modPrefix.length).trim().split(/ +/);    //TODO
+        const commandName = args.shift().toLowerCase();
+
         const command = client.modCommands.get(commandName)
             || client.modCommands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 
@@ -211,7 +227,7 @@ client.once('ready', () =>
     client.user.setPresence({
         status: 'online',
         activity: {
-            name: `over ${client.guilds.cache.size} servers | prefix: ${prefix}`,
+            name: `over ${client.guilds.cache.size} servers`,
             // PLAYING: WATCHING: LISTENING: STREAMING:
             type: 'WATCHING',
         },
