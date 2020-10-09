@@ -1,24 +1,27 @@
-// First, require the module.
-const mysql = require('better-mysql');
+const { dbhost, dbuser, dbpassword, db } = require('./config.json');
+const mysql = require('mysql');
 
-// Then login to the mysql service
-const client = new mysql.client({
-    host: 'localhost',
-    user: 'au_bot',
-    pass: 'TYEpSVjJ4sPRSWj',
+const connection = mysql.createConnection({
+    host     : dbhost,
+    user     : dbuser,
+    password : dbpassword,
+    database : db,
 });
 
-// Now, create the database 'better-mysql-bot', but you can rename it to whatever you want.
-client.loadDatabase('au_bot').then(async (database) =>
+connection.connect();
+
+connection.query('CREATE TABLE guildsettings (Guild VARCHAR(255) PRIMARY KEY, Prefix VARCHAR(5) NOT NULL, ModPrefix VARCHAR(5) NOT NULL);', function (error, results, fields)
 {
-    const table = await database.createTable('guildsettings', ['Guild', 'Prefix', 'ModPrefix'])
-        .catch(e =>
-        {
-            console.log(e);
-        });
-    const table = await database.createTable('points', ['User', 'Guild', 'Points'])
-        .catch(e =>
-        {
-            console.log(e);
-        });
+    if (error)
+        throw error;
+    // console.log('The solution is: ', results[0].solution);
 });
+
+connection.query('CREATE TABLE points (User VARCHAR(255) PRIMARY KEY, Guild VARCHAR(255) PRIMARY KEY, Points INT(11) UNSIGNED NOT NULL);', function (error, results, fields)
+{
+    if (error)
+        throw error;
+    // console.log('The solution is: ', results[0].solution);
+});
+
+connection.end();
