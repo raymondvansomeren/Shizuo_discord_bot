@@ -11,5 +11,9 @@ const client = new mysql.client({
 // Now, create the database 'better-mysql-bot', but you can rename it to whatever you want.
 client.loadDatabase('au_bot').then(async (database) =>
 {
-    const table = await client.createTable('guildsettings', ['Guild', 'Settings']);
+    const table = await client.createTable('guildsettings', ['Guild', 'Settings'])
+        .catch(e =>
+        {
+            console.log(e);
+        });
 });
