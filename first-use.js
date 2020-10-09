@@ -1,4 +1,4 @@
-const { dbhost, dbuser, dbpassword, db } = require('./config.json');
+const { dbhost, dbuser, dbpassword, db, prefix, modPrefix } = require('./config.json');
 const mysql = require('mysql2');
 
 const connection = mysql.createConnection({
@@ -8,14 +8,16 @@ const connection = mysql.createConnection({
     database : db,
 });
 
-connection.query('CREATE TABLE guildsettings (Guild VARCHAR(255) PRIMARY KEY, Prefix VARCHAR(5) NOT NULL, ModPrefix VARCHAR(5) NOT NULL);', function (error, results, fields)
-{
-    if (error)
-        throw error;
-});
+connection.query(`CREATE TABLE guildsettings (Guild VARCHAR(255) PRIMARY KEY, Prefix VARCHAR(5) NOT NULL DEFAULT(${prefix}), ModPrefix VARCHAR(5) NOT NULL DEFAULT(${modPrefix}));`,
+    function(error, results, fields)
+    {
+        if (error)
+            throw error;
+    });
 
-connection.query('CREATE TABLE points (User VARCHAR(255) PRIMARY KEY, Guild VARCHAR(255) PRIMARY KEY, Points INT(11) UNSIGNED NOT NULL);', function (error, results, fields)
-{
-    if (error)
-        throw error;
-});
+connection.query('CREATE TABLE points (User VARCHAR(255) PRIMARY KEY, Guild VARCHAR(255) PRIMARY KEY, Points INT(11) UNSIGNED NOT NULL);',
+    function(error, results, fields)
+    {
+        if (error)
+            throw error;
+    });
