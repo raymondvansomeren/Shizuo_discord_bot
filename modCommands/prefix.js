@@ -1,4 +1,4 @@
-const { dbhost, dbuser, dbpassword, db } = require('./config.json');
+const { dbhost, dbuser, dbpassword, db } = require('../config.json');
 const mysql = require('mysql2');
 
 const connection = mysql.createConnection({
