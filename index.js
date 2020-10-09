@@ -1,6 +1,6 @@
 const Discord = require('discord.js');
 const fs = require('fs');
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise');
 const { token, defaultPrefix, defaultModPrefix, dbhost, dbuser, dbpassword, db } = require('./config.json');
 
 let prefixes = new Map();
