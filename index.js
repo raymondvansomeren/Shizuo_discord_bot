@@ -17,7 +17,7 @@ client.modCommands = new Discord.Collection();
 const cooldowns = new Discord.Collection();
 const modCooldowns = new Discord.Collection();
 
-function changePrefix(guild, prefix, modPrefix)
+function changePrefix(guild, prefix, modPrefix, prefixesToChange)
 {
 
     connection.query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
@@ -44,7 +44,7 @@ function changePrefix(guild, prefix, modPrefix)
                             return console.log(error3);
                     });
             }
-            prefixes.set(guild.id, { prefix: defaultPrefix, modPrefix: defaultModPrefix });
+            prefixesToChange.set(guild.id, { prefix: defaultPrefix, modPrefix: defaultModPrefix });
         });
 }
 
@@ -106,7 +106,7 @@ client.on('guildCreate', async guild =>
         },
     });
 
-    changePrefix(guild, defaultPrefix, defaultModPrefix);
+    changePrefix(guild, defaultPrefix, defaultModPrefix, prefixes);
 
     // connection.query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
     //     function(error, results, fields)
