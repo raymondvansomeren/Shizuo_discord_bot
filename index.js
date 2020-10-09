@@ -3,7 +3,7 @@ const fs = require('fs');
 const mysql = require('mysql2');
 const { token, defaultPrefix, defaultModPrefix, dbhost, dbuser, dbpassword, db } = require('./config.json');
 
-// let prefixes = new Map(); TODO
+let prefixes = new Map();
 const connection = mysql.createConnection({
     host     : dbhost,
     user     : dbuser,
@@ -132,7 +132,7 @@ client.on('guildCreate', async guild =>
                             return console.log(error3);
                     });
             }
-            // prefixes.set(guild.id, { prefix: defaultPrefix, modPrefix: defaultModPrefix }); TODO
+            prefixes.set(guild.id, { prefix: defaultPrefix, modPrefix: defaultModPrefix });
         });
 });
 
@@ -154,119 +154,208 @@ client.on('message', async message =>
     if (message.author.bot || message.channel.type === 'dm')
         return;
 
-    let prefix, modPrefix;
-
-    // if (!prefixes.has(message.guild.id)) TODO
-    // {
     connection.query(`SELECT Prefix, ModPrefix FROM guildsettings WHERE Guild = '${message.guild.id}';`,
         function(error, results, fields)
         {
             if (error)
                 return console.log(error);
 
-            // prefixes.set(message.guild.id, { prefix: results[0].Prefix, modPrefix: results[0].ModPrefix }); TODO
-            prefix = results[0].Prefix;
-            modPrefix = results[0].ModPrefix;
-            console.log(`message.guild.id = ${message.guild.id} + results[0].Prefix = ${results[0].Prefix} + results[0].ModPrefix = ${results[0].ModPrefix}`);
+            let prefix = results[0].Prefix;
+            let modPrefix = results[0].ModPrefix;
+            // console.log(`message.guild.id = ${message.guild.id} + results[0].Prefix = ${results[0].Prefix} + results[0].ModPrefix = ${results[0].ModPrefix}`);
+            if(!message.content.startsWith(prefix) && !message.content.startsWith(modPrefix))   //TODO prefix fix
+                return;
+
+            // Default (everyone) commands
+            if (message.content.startsWith(prefix)) //TODO
+            {
+                const args = message.content.slice(prefix.length).trim().split(/ +/);    //TODO
+                const commandName = args.shift().toLowerCase();
+
+                const command = client.commands.get(commandName)
+                    || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+
+                if (!command)
+                    return;
+
+                if (!cooldowns.has(command.name))
+                    cooldowns.set(command.name, new Discord.Collection());
+
+                const now = Date.now();
+                const timestamps = cooldowns.get(command.name);
+                const cooldownAmount = (command.cooldown || 3) * 1000;
+
+                if (timestamps.has(message.author.id))
+                {
+                    const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
+
+                    if (now < expirationTime)
+                    {
+                        const timeLeft = (expirationTime - now) / 1000;
+                        return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
+                    }
+                }
+                timestamps.set(message.author.id, now);
+                setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+
+                try
+                {
+                    command.execute(client, message, args);
+                }
+                catch (e)
+                {
+                    console.error(e);
+                    message.reply('there was an error trying to execute that command!');
+                }
+            }
+            // Moderation commands
+            else if (message.content.startsWith(modPrefix))  //TODO
+            {
+                const args = message.content.slice(modPrefix.length).trim().split(/ +/);    //TODO
+                const commandName = args.shift().toLowerCase();
+
+                const command = client.modCommands.get(commandName)
+                    || client.modCommands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+
+                if (!command)
+                    return;
+
+                if (!modCooldowns.has(command.name))
+                    modCooldowns.set(command.name, new Discord.Collection());
+
+                const now = Date.now();
+                const timestamps = modCooldowns.get(command.name);
+                const cooldownAmount = (command.cooldown || 3) * 1000;
+
+                if (timestamps.has(message.author.id))
+                {
+                    const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
+
+                    if (now < expirationTime)
+                    {
+                        const timeLeft = (expirationTime - now) / 1000;
+                        return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
+                    }
+                }
+                timestamps.set(message.author.id, now);
+                setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+
+                try
+                {
+                    command.execute(client, message, args);
+                }
+                catch (e)
+                {
+                    console.error(e);
+                    message.reply('there was an error trying to execute that command!');
+                }
+            }
         });
-    // } TODO
 
-    // if(!message.content.startsWith(prefixes.get(message.guild.id).prefix) && !message.content.startsWith(prefixes.get(message.guild.id).modPrefix)) TODO   //TODO prefix fix
-    if(!message.content.startsWith(prefix) && !message.content.startsWith(modPrefix))   //TODO prefix fix
-        return;
+    // if (!prefixes.has(message.guild.id))
+    // {
+    //     connection.query(`SELECT Prefix, ModPrefix FROM guildsettings WHERE Guild = '${message.guild.id}';`,
+    //         function(error, results, fields)
+    //         {
+    //             if (error)
+    //                 return console.log(error);
 
-    // Default (everyone) commands
+    //             prefixes.set(message.guild.id, { prefix: results[0].Prefix, modPrefix: results[0].ModPrefix });
+    //             console.log(`message.guild.id = ${message.guild.id} + results[0].Prefix = ${results[0].Prefix} + results[0].ModPrefix = ${results[0].ModPrefix}`);
+    //         });
+    // }
+
+    // if(!message.content.startsWith(prefixes.get(message.guild.id).prefix) && !message.content.startsWith(prefixes.get(message.guild.id).modPrefix))   //TODO prefix fix
+    //     return;
+
+    // // Default (everyone) commands
     // if (message.content.startsWith(prefixes.get(message.guild.id).prefix)) //TODO
-    if (message.content.startsWith(prefix)) //TODO
-    {
-        // const args = message.content.slice(prefixes.get(message.guild.id).prefix.length).trim().split(/ +/);    //TODO
-        const args = message.content.slice(prefix.length).trim().split(/ +/);    //TODO
-        const commandName = args.shift().toLowerCase();
+    // {
+    //     const args = message.content.slice(prefixes.get(message.guild.id).prefix.length).trim().split(/ +/);    //TODO
+    //     const commandName = args.shift().toLowerCase();
 
-        const command = client.commands.get(commandName)
-            || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+    //     const command = client.commands.get(commandName)
+    //         || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 
-        if (!command)
-            return;
+    //     if (!command)
+    //         return;
 
-        if (!cooldowns.has(command.name))
-            cooldowns.set(command.name, new Discord.Collection());
+    //     if (!cooldowns.has(command.name))
+    //         cooldowns.set(command.name, new Discord.Collection());
 
-        const now = Date.now();
-        const timestamps = cooldowns.get(command.name);
-        const cooldownAmount = (command.cooldown || 3) * 1000;
+    //     const now = Date.now();
+    //     const timestamps = cooldowns.get(command.name);
+    //     const cooldownAmount = (command.cooldown || 3) * 1000;
 
-        if (timestamps.has(message.author.id))
-        {
-            const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
+    //     if (timestamps.has(message.author.id))
+    //     {
+    //         const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
 
-            if (now < expirationTime)
-            {
-                const timeLeft = (expirationTime - now) / 1000;
-                return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
-            }
-        }
-        timestamps.set(message.author.id, now);
-        setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+    //         if (now < expirationTime)
+    //         {
+    //             const timeLeft = (expirationTime - now) / 1000;
+    //             return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
+    //         }
+    //     }
+    //     timestamps.set(message.author.id, now);
+    //     setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
 
-        try
-        {
-            command.execute(client, message, args);
-        }
-        catch (error)
-        {
-            console.error(error);
-            message.reply('there was an error trying to execute that command!');
-        }
-    }
-    // Moderation commands
+    //     try
+    //     {
+    //         command.execute(client, message, args);
+    //     }
+    //     catch (error)
+    //     {
+    //         console.error(error);
+    //         message.reply('there was an error trying to execute that command!');
+    //     }
+    // }
+    // // Moderation commands
     // else if (message.content.startsWith(prefixes.get(message.guild.id).modPrefix))  //TODO
-    else if (message.content.startsWith(modPrefix))  //TODO
-    {
-        // const args = message.content.slice(prefixes.get(message.guild.id).modPrefix.length).trim().split(/ +/);    //TODO
-        const args = message.content.slice(modPrefix.length).trim().split(/ +/);    //TODO
-        const commandName = args.shift().toLowerCase();
+    // {
+    //     const args = message.content.slice(prefixes.get(message.guild.id).modPrefix.length).trim().split(/ +/);    //TODO
+    //     const commandName = args.shift().toLowerCase();
 
-        const command = client.modCommands.get(commandName)
-            || client.modCommands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+    //     const command = client.modCommands.get(commandName)
+    //         || client.modCommands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 
-        if (!command)
-            return;
+    //     if (!command)
+    //         return;
 
-        if (!modCooldowns.has(command.name))
-            modCooldowns.set(command.name, new Discord.Collection());
+    //     if (!modCooldowns.has(command.name))
+    //         modCooldowns.set(command.name, new Discord.Collection());
 
-        const now = Date.now();
-        const timestamps = modCooldowns.get(command.name);
-        const cooldownAmount = (command.cooldown || 3) * 1000;
+    //     const now = Date.now();
+    //     const timestamps = modCooldowns.get(command.name);
+    //     const cooldownAmount = (command.cooldown || 3) * 1000;
 
-        if (timestamps.has(message.author.id))
-        {
-            const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
+    //     if (timestamps.has(message.author.id))
+    //     {
+    //         const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
 
-            if (now < expirationTime)
-            {
-                const timeLeft = (expirationTime - now) / 1000;
-                return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
-            }
-        }
-        timestamps.set(message.author.id, now);
-        setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+    //         if (now < expirationTime)
+    //         {
+    //             const timeLeft = (expirationTime - now) / 1000;
+    //             return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
+    //         }
+    //     }
+    //     timestamps.set(message.author.id, now);
+    //     setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
 
-        try
-        {
-            command.execute(client, message, args);
-            // if (command.name === 'prefix')
-            //     prefixes.set(message.guild.id, { prefix: args[0], modPrefix: prefixes.get(message.guild.id).modPrefix });
-            // else if (command.name === 'modprefix')
-            //     prefixes.set(message.guild.id, { prefix: prefixes.get(message.guild.id).prefix, modPrefix: args[0] });
-        }
-        catch (error)
-        {
-            console.error(error);
-            message.reply('there was an error trying to execute that command!');
-        }
-    }
+    //     try
+    //     {
+    //         command.execute(client, message, args);
+    //         if (command.name === 'prefix')
+    //             prefixes.set(message.guild.id, { prefix: args[0], modPrefix: prefixes.get(message.guild.id).modPrefix });
+    //         else if (command.name === 'modprefix')
+    //             prefixes.set(message.guild.id, { prefix: prefixes.get(message.guild.id).prefix, modPrefix: args[0] });
+    //     }
+    //     catch (error)
+    //     {
+    //         console.error(error);
+    //         message.reply('there was an error trying to execute that command!');
+    //     }
+    // }
 });
 
 client.once('ready', () =>
