@@ -66,7 +66,7 @@ fs.readdir('./modCommands/', (err, files) =>
 
 client.on('guildCreate', async guild =>
 {
-    console.log('Ready!');
+    console.log('Left a server!');
     client.user.setPresence({
         status: 'online',
         activity: {
@@ -105,7 +105,7 @@ client.on('guildCreate', async guild =>
 
 client.on('guildCreate', async guild =>
 {
-    console.log('Ready!');
+    console.log('New server joined!');
     client.user.setPresence({
         status: 'online',
         activity: {
