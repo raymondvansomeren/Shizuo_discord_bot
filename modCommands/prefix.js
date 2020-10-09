@@ -29,18 +29,19 @@ module.exports =
                     message.channel.send(error);
                     return console.log(error);
                 }
-                return message.channel.send('Well, this ends the prefix');
-            });
+                if (results[0].ModPrefix === args[0])
+                    return message.channel.send('You can\'t have the same prefix for default commands as you have for moderation commands.');
 
-        connection.query(`UPDATE guildsettings SET Prefix = '${args[0]}' WHERE Guild = '${message.guild.id}'`,
-            function(error, results, fields)
-            {
-                if (error)
-                {
-                    message.channel.send(error);
-                    return console.log(error);
-                }
-                message.channel.send(`Succesfully changed the prefix to \`${args[0]}\``);
+                connection.query(`UPDATE guildsettings SET Prefix = '${args[0]}' WHERE Guild = '${message.guild.id}'`,
+                    function(error, results, fields)
+                    {
+                        if (error)
+                        {
+                            message.channel.send(error);
+                            return console.log(error);
+                        }
+                        message.channel.send(`Succesfully changed the prefix to \`${args[0]}\``);
+                    });
             });
     },
 };

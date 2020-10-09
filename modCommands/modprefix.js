@@ -22,7 +22,8 @@ module.exports =
         if (args[0].length > 5)
             return message.channel.send('The modPrefix may not surpass 5 characters.');
 
-        connection.query(`UPDATE guildsettings SET ModPrefix = '${args[0]}' WHERE Guild = '${message.guild.id}'`,
+
+        connection.query(`SELECT Prefix FROM guildsettings WHERE Guild = '${message.guild.id}'`,
             function(error, results, fields)
             {
                 if (error)
@@ -30,7 +31,19 @@ module.exports =
                     message.channel.send(error);
                     return console.log(error);
                 }
-                message.channel.send(`Succesfully changed the moderation prefix to \`${args[0]}\``);
+                if (results[0].Prefix === args[0])
+                    return message.channel.send('You can\'t have the same prefix for moderation commands as you have for default commands.');
+
+                connection.query(`UPDATE guildsettings SET ModPrefix = '${args[0]}' WHERE Guild = '${message.guild.id}'`,
+                    function(error, results, fields)
+                    {
+                        if (error)
+                        {
+                            message.channel.send(error);
+                            return console.log(error);
+                        }
+                        message.channel.send(`Succesfully changed the moderation prefix to \`${args[0]}\``);
+                    });
             });
     },
 };
