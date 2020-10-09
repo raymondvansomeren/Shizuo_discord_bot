@@ -248,9 +248,9 @@ client.on('message', async message =>
         {
             command.execute(client, message, args);
             if (command.name === 'prefix')
-                prefixes.set(message.guild.id, { prefix: args[0] });
+                prefixes.set(message.guild.id, { prefix: args[0], modPrefix: prefixes.get(message.guild.id).modPrefix });
             else if (command.name === 'modprefix')
-                prefixes.set(message.guild.id, { modPrefix: args[0] });
+                prefixes.set(message.guild.id, { prefix: prefixes.get(message.guild.id).prefix, modPrefix: args[0] });
         }
         catch (error)
         {
