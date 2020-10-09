@@ -17,6 +17,37 @@ client.modCommands = new Discord.Collection();
 const cooldowns = new Discord.Collection();
 const modCooldowns = new Discord.Collection();
 
+function changePrefix(guild, prefix, modPrefix)
+{
+
+    connection.query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
+        function(error, results, fields)
+        {
+            if (error)
+                return console.log(error);
+
+            if (results.length < 1 || results == undefined)
+            {
+                connection.query(`INSERT INTO guildsettings (Guild, Prefix, ModPrefix) VALUES ('${guild.id}', '${prefix}', '${modPrefix}');`,
+                    function(error2, results2, fields2)
+                    {
+                        if (error2)
+                            return console.log(error2);
+                    });
+            }
+            else
+            {
+                connection.query(`UPDATE guildsettings SET Prefix = '${prefix}', ModPrefix = '${modPrefix}' WHERE Guild = '${guild.id}';`,
+                    function(error3, results3, fields3)
+                    {
+                        if (error3)
+                            return console.log(error3);
+                    });
+            }
+            prefixes.set(guild.id, { prefix: defaultPrefix, modPrefix: defaultModPrefix });
+        });
+}
+
 // Default (everyone) commands
 fs.readdir('./commands/', (err, files) =>
 {
@@ -75,31 +106,34 @@ client.on('guildCreate', async guild =>
         },
     });
 
-    connection.query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
-        function(error, results, fields)
-        {
-            if (error)
-                return console.log(error);
+    changePrefix(guild, defaultPrefix, defaultModPrefix);
 
-            if (results.length < 1 || results == undefined)
-            {
-                connection.query(`INSERT INTO guildsettings (Guild, Prefix, ModPrefix) VALUES ('${guild.id}', '${defaultPrefix}', '${defaultModPrefix}');`,
-                    function(error2, results2, fields2)
-                    {
-                        if (error2)
-                            return console.log(error2);
-                    });
-            }
-            else
-            {
-                connection.query(`UPDATE guildsettings SET Prefix = '${defaultPrefix}', ModPrefix = '${defaultModPrefix}' WHERE Guild = '${guild.id}';`,
-                    function(error3, results3, fields3)
-                    {
-                        if (error3)
-                            return console.log(error3);
-                    });
-            }
-        });
+    // connection.query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
+    //     function(error, results, fields)
+    //     {
+    //         if (error)
+    //             return console.log(error);
+
+    //         if (results.length < 1 || results == undefined)
+    //         {
+    //             connection.query(`INSERT INTO guildsettings (Guild, Prefix, ModPrefix) VALUES ('${guild.id}', '${defaultPrefix}', '${defaultModPrefix}');`,
+    //                 function(error2, results2, fields2)
+    //                 {
+    //                     if (error2)
+    //                         return console.log(error2);
+    //                 });
+    //         }
+    //         else
+    //         {
+    //             connection.query(`UPDATE guildsettings SET Prefix = '${defaultPrefix}', ModPrefix = '${defaultModPrefix}' WHERE Guild = '${guild.id}';`,
+    //                 function(error3, results3, fields3)
+    //                 {
+    //                     if (error3)
+    //                         return console.log(error3);
+    //                 });
+    //         }
+    //         prefixes.set(guild.id, { prefix: defaultPrefix, modPrefix: defaultModPrefix });
+    //     });
 });
 
 client.on('guildCreate', async guild =>
