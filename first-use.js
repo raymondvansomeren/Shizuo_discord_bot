@@ -1,11 +1,5 @@
 const { dbhost, dbuser, dbpassword, db } = require('./config.json');
-// const dbhost = require('./config.json').dbhost;
-// const dbuser = require('./config.json').dbuser;
-// const dbpassword = require('./config.json').dbpassword;
-// const db = require('./config.json').dbhost;
 const mysql = require('mysql');
-
-console.log(dbhost);
 
 const connection = mysql.createConnection({
     host     : dbhost,
