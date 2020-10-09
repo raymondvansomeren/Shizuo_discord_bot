@@ -114,7 +114,7 @@ client.on('guildDelete', async guild =>
     });
 });
 
-const escapeRegex = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); //TODO
+const escapeRegex = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 client.on('message', async message =>
 {
@@ -135,21 +135,13 @@ client.on('message', async message =>
             if (!prefixRegex.test(message.content))
                 return;
 
-            //TODO if(!message.content.startsWith(prefix) && !message.content.startsWith(modPrefix))
-            //TODO     return;
-
-            const [, matchedPrefix] = message.content.match(prefixRegex);   //TODO
-            const args = message.content.slice(matchedPrefix.length).trim().split(/ +/);   //TODO
-            const commandName = args.shift().toLowerCase();   //TODO
+            const [, matchedPrefix] = message.content.match(prefixRegex);
+            const args = message.content.slice(matchedPrefix.length).trim().split(/ +/);
+            const commandName = args.shift().toLowerCase();
 
             // Default (everyone) commands
-            //TODO if (message.content.startsWith(modPrefix))
-            //TODO {
             if (message.content.startsWith(modPrefix))
             {
-                //TODO const args = message.content.slice(modPrefix.length).trim().split(/ +/);
-                //TODO const commandName = args.shift().toLowerCase();
-
                 const command = client.modCommands.get(commandName)
                     || client.modCommands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 
@@ -185,16 +177,9 @@ client.on('message', async message =>
                     console.error(e);
                     message.reply('there was an error trying to execute that command!');
                 }
-            //TODO }
-            // Moderation commands
-            //TODO else if (message.content.startsWith(prefix))
             }
             else
             {
-            //TODO{
-                //TODO const args = message.content.slice(prefix.length).trim().split(/ +/);
-                //TODO const commandName = args.shift().toLowerCase();
-
                 const command = client.commands.get(commandName)
                     || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 
