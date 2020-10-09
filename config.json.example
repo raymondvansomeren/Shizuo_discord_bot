@@ -2,5 +2,9 @@
     "token": "your-token-here",
     "ownerID": "your-discord-id-here",
     "prefix": "au!",
-    "modPrefix": "au@"
+    "modPrefix": "au@",
+    "dbhost": "",
+    "dbuser": "",
+    "dbpassword": "",
+    "db": ""
 }
