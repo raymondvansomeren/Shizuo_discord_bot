@@ -3,8 +3,8 @@ const fs = require('fs');
 const mysql = require('mysql2');
 
 const { token, defaultPrefix, defaultModPrefix, dbhost, dbuser, dbpassword, db } = require('./config.json');
-let prefix = '';
-let modPrefix = '';
+let prefix = defaultPrefix;
+let modPrefix = defaultModPrefix;
 const connection = mysql.createConnection({
     host     : dbhost,
     user     : dbuser,
@@ -90,8 +90,6 @@ client.on('guildCreate', async guild =>
                             return console.log(error);
                     });
             }
-            prefix = defaultPrefix;
-            modPrefix = defaultModPrefix;
         });
 });
 
