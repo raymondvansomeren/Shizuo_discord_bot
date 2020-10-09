@@ -1,8 +1,8 @@
 {
     "token": "your-token-here",
     "ownerID": "your-discord-id-here",
-    "prefix": "au!",
-    "modPrefix": "au@",
+    "defaultPrefix": "au!",
+    "defaultModPrefix": "au@",
     "dbhost": "",
     "dbuser": "",
     "dbpassword": "",
