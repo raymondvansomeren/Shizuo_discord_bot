@@ -9,11 +9,11 @@ const client = new mysql.client({
 });
 
 // Now, create the database 'better-mysql-bot', but you can rename it to whatever you want.
-// client.loadDatabase('au_bot').then(async (database) =>
-// {
-    const table = await client.loadDatabase('au_bot').createTable('guildsettings', ['Guild', 'Settings'])
+client.loadDatabase('au_bot').then(async (database) =>
+{
+    const table = await database.createTable('guildsettings', ['Guild', 'Settings'])
         .catch(e =>
         {
             console.log(e);
         });
-// });
+});
