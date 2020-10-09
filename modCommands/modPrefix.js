@@ -17,7 +17,7 @@ module.exports =
     cooldown: 3,
     execute(bot, message, args)
     {
-        if (!message.member.hasPermission('MANAGER_SERVER'))
+        if (!message.member.hasPermission('MANAGE_GUILD'))
             return message.channel.send('You don\'t have permission to use this command.');
         if (args[0].length > 5)
             return message.channel.send('The modPrefix may not surpass 5 characters.');
