@@ -72,7 +72,9 @@ client.on('guildCreate', async guild =>
             if (error)
                 return console.log(error);
 
-            if (!results[0].Guild)
+            console.log(results);
+
+            if (!results[0])
             {
                 connection.query(`INSERT INTO guildsettings (Guild, Prefix, ModPrefix) VALUES (${guild.id}, ${defaultPrefix}, ${defaultModPrefix});`,
                     function(error2, results2, fields2)
