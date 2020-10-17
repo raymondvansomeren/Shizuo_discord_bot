@@ -6,5 +6,6 @@
     "dbhost": "",
     "dbuser": "",
     "dbpassword": "",
-    "db": ""
+    "db": "",
+    "invitelink": ""
 }
