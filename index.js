@@ -3,7 +3,8 @@ const fs = require('fs');
 const mysql = require('mysql2');
 const { token, defaultPrefix, defaultModPrefix, dbhost, dbuser, dbpassword, db } = require('./config.json');
 
-const connection = mysql.createConnection({
+// const connection = mysql.createConnection({
+const pool = mysql.createPool({
     host     : dbhost,
     user     : dbuser,
     password : dbpassword,
@@ -75,16 +76,16 @@ client.on('guildCreate', async guild =>
         },
     });
 
-    connection.query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
-        function(error, results, fields)
+    pool.query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
+        (error, results) =>
         {
             if (error)
                 return console.log(error);
 
             if (results.length < 1 || results == undefined)
             {
-                connection.query(`INSERT INTO guildsettings (Guild, Prefix, ModPrefix) VALUES ('${guild.id}', '${defaultPrefix}', '${defaultModPrefix}');`,
-                    function(error2, results2, fields2)
+                pool.query(`INSERT INTO guildsettings (Guild, Prefix, ModPrefix) VALUES ('${guild.id}', '${defaultPrefix}', '${defaultModPrefix}');`,
+                    (error2, results2) =>
                     {
                         if (error2)
                             return console.log(error2);
@@ -92,8 +93,8 @@ client.on('guildCreate', async guild =>
             }
             else
             {
-                connection.query(`UPDATE guildsettings SET Prefix = '${defaultPrefix}', ModPrefix = '${defaultModPrefix}' WHERE Guild = '${guild.id}';`,
-                    function(error3, results3, fields3)
+                pool.query(`UPDATE guildsettings SET Prefix = '${defaultPrefix}', ModPrefix = '${defaultModPrefix}' WHERE Guild = '${guild.id}';`,
+                    (error3, results3) =>
                     {
                         if (error3)
                             return console.log(error3);
@@ -122,8 +123,9 @@ client.on('message', async message =>
     if (message.author.bot || message.channel.type === 'dm')
         return;
 
-    connection.query(`SELECT Prefix, ModPrefix FROM guildsettings WHERE Guild = '${message.guild.id}';`,
-        function(error, results, fields)
+    // TODO change so the prefix gets loaded into client.prefixes and there no longer will be a need to request the prefix from the database at each message
+    pool.query(`SELECT Prefix, ModPrefix FROM guildsettings WHERE Guild = '${message.guild.id}';`,
+        (error, results) =>
         {
             if (error)
                 return console.log(error);
@@ -131,7 +133,7 @@ client.on('message', async message =>
             const prefix = results[0].Prefix;
             const modPrefix = results[0].ModPrefix;
 
-            const prefixRegex = new RegExp(`^(<@!?${client.user.id}>|${escapeRegex(prefix)}|${escapeRegex(modPrefix)})\\s*`);//TODO
+            const prefixRegex = new RegExp(`^(<@!?${client.user.id}>|${escapeRegex(prefix)}|${escapeRegex(modPrefix)})\\s*`);
 
             if (!prefixRegex.test(message.content))
                 return;
