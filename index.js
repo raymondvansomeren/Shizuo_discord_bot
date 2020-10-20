@@ -3,23 +3,13 @@ const fs = require('fs');
 const mysql = require('mysql2');
 const { token, defaultPrefix, defaultModPrefix, dbhost, dbuser, dbpassword, db } = require('./config.json');
 
-let connection;
-
-function connectDB()
-{
-    connection = mysql.createConnection({
-        host     : dbhost,
-        user     : dbuser,
-        password : dbpassword,
-        database : db,
-    });
-    connection.on('error', connectDB());
-}
-
-function closeDB()
-{
-    connection.close();
-}
+// const connection = mysql.createConnection({
+const connection = mysql.createConnection({
+    host     : dbhost,
+    user     : dbuser,
+    password : dbpassword,
+    database : db,
+});
 
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
@@ -86,7 +76,6 @@ client.on('guildCreate', async guild =>
         },
     });
 
-    connectDB();
     connection.query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
         (error, results) =>
         {
@@ -112,7 +101,6 @@ client.on('guildCreate', async guild =>
                     });
             }
         });
-    closeDB();
 });
 
 client.on('guildDelete', async guild =>
@@ -135,7 +123,6 @@ client.on('message', async message =>
     if (message.author.bot || message.channel.type === 'dm')
         return;
 
-    connectDB();
     // TODO change so the prefix gets loaded into client.prefixes and there no longer will be a need to request the prefix from the database at each message
     connection.query(`SELECT Prefix, ModPrefix FROM guildsettings WHERE Guild = '${message.guild.id}';`,
         (error, results) =>
@@ -233,7 +220,6 @@ client.on('message', async message =>
                 }
             }
         });
-    closeDB();
 });
 
 client.once('ready', () =>
