@@ -3,13 +3,23 @@ const fs = require('fs');
 const mysql = require('mysql2');
 const { token, defaultPrefix, defaultModPrefix, dbhost, dbuser, dbpassword, db } = require('./config.json');
 
-// const connection = mysql.createConnection({
-const pool = mysql.createPool({
-    host     : dbhost,
-    user     : dbuser,
-    password : dbpassword,
-    database : db,
-});
+let connection;
+
+function connectDB()
+{
+    connection = mysql.createConnection({
+        host     : dbhost,
+        user     : dbuser,
+        password : dbpassword,
+        database : db,
+    });
+    connection.on('error', connectDB());
+}
+
+function closeDB()
+{
+    connection.close();
+}
 
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
@@ -76,7 +86,8 @@ client.on('guildCreate', async guild =>
         },
     });
 
-    pool.query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
+    connectDB();
+    connection.query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
         (error, results) =>
         {
             if (error)
@@ -84,7 +95,7 @@ client.on('guildCreate', async guild =>
 
             if (results.length < 1 || results == undefined)
             {
-                pool.query(`INSERT INTO guildsettings (Guild, Prefix, ModPrefix) VALUES ('${guild.id}', '${defaultPrefix}', '${defaultModPrefix}');`,
+                connection.query(`INSERT INTO guildsettings (Guild, Prefix, ModPrefix) VALUES ('${guild.id}', '${defaultPrefix}', '${defaultModPrefix}');`,
                     (error2, results2) =>
                     {
                         if (error2)
@@ -93,7 +104,7 @@ client.on('guildCreate', async guild =>
             }
             else
             {
-                pool.query(`UPDATE guildsettings SET Prefix = '${defaultPrefix}', ModPrefix = '${defaultModPrefix}' WHERE Guild = '${guild.id}';`,
+                connection.query(`UPDATE guildsettings SET Prefix = '${defaultPrefix}', ModPrefix = '${defaultModPrefix}' WHERE Guild = '${guild.id}';`,
                     (error3, results3) =>
                     {
                         if (error3)
@@ -101,6 +112,7 @@ client.on('guildCreate', async guild =>
                     });
             }
         });
+    closeDB();
 });
 
 client.on('guildDelete', async guild =>
@@ -123,8 +135,9 @@ client.on('message', async message =>
     if (message.author.bot || message.channel.type === 'dm')
         return;
 
+    connectDB();
     // TODO change so the prefix gets loaded into client.prefixes and there no longer will be a need to request the prefix from the database at each message
-    pool.query(`SELECT Prefix, ModPrefix FROM guildsettings WHERE Guild = '${message.guild.id}';`,
+    connection.query(`SELECT Prefix, ModPrefix FROM guildsettings WHERE Guild = '${message.guild.id}';`,
         (error, results) =>
         {
             if (error)
@@ -220,6 +233,7 @@ client.on('message', async message =>
                 }
             }
         });
+    closeDB();
 });
 
 client.once('ready', () =>
