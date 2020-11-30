@@ -1,5 +1,6 @@
 const Discord = require('discord.js');
 const fs = require('fs');
+const { connect } = require('http2');
 const mysql = require('mysql2');
 const { token, defaultPrefix, defaultModPrefix, dbhost, dbuser, dbpassword, db } = require('./config.json');
 
@@ -76,6 +77,7 @@ bot.on('guildCreate', async guild =>
         },
     });
 
+    connection.connect();
     connection.query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
         (error, results) =>
         {
@@ -101,6 +103,7 @@ bot.on('guildCreate', async guild =>
                     });
             }
         });
+    connection.end();
 });
 
 bot.on('guildDelete', async guild =>
@@ -123,6 +126,7 @@ bot.on('message', async message =>
     if (message.author.bot || message.channel.type === 'dm')
         return;
 
+    connection.connect();
     // TODO change so the prefix gets loaded into bot.prefixes and there no longer will be a need to request the prefix from the database at each message
     connection.query(`SELECT Prefix, ModPrefix FROM guildsettings WHERE Guild = '${message.guild.id}';`,
         (error, results) =>
@@ -220,6 +224,7 @@ bot.on('message', async message =>
                 }
             }
         });
+    connection.end();
 });
 
 // KICKING TJEERD RANDOMLY EVERY 5 MINUTES (CHANCE)
