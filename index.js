@@ -11,10 +11,10 @@ const connection = mysql.createConnection({
     database : db,
 });
 
-const client = new Discord.Client();
-client.commands = new Discord.Collection();
-client.modCommands = new Discord.Collection();
-client.prefixes = new Map();
+const bot = new Discord.Client();
+bot.commands = new Discord.Collection();
+bot.modCommands = new Discord.Collection();
+bot.prefixes = new Map();
 const cooldowns = new Discord.Collection();
 const modCooldowns = new Discord.Collection();
 
@@ -37,7 +37,7 @@ fs.readdir('./commands/', (err, files) =>
     {
         const props = require(`./commands/${f}`);
         console.log(`${f} loaded!`);
-        client.commands.set(props.name, props);
+        bot.commands.set(props.name, props);
     });
 });
 
@@ -60,17 +60,17 @@ fs.readdir('./modCommands/', (err, files) =>
     {
         const props = require(`./modCommands/${f}`);
         console.log(`${f} loaded!`);
-        client.modCommands.set(props.name, props);
+        bot.modCommands.set(props.name, props);
     });
 });
 
-client.on('guildCreate', async guild =>
+bot.on('guildCreate', async guild =>
 {
     console.log('New server joined!');
-    client.user.setPresence({
+    bot.user.setPresence({
         status: 'online',
         activity: {
-            name: `over ${client.guilds.cache.size} servers`,
+            name: `over ${bot.guilds.cache.size} servers`,
             // PLAYING: WATCHING: LISTENING: STREAMING:
             type: 'WATCHING',
         },
@@ -103,13 +103,13 @@ client.on('guildCreate', async guild =>
         });
 });
 
-client.on('guildDelete', async guild =>
+bot.on('guildDelete', async guild =>
 {
     console.log('Left a server!');
-    client.user.setPresence({
+    bot.user.setPresence({
         status: 'online',
         activity: {
-            name: `over ${client.guilds.cache.size} servers`,
+            name: `over ${bot.guilds.cache.size} servers`,
             // PLAYING: WATCHING: LISTENING: STREAMING:
             type: 'WATCHING',
         },
@@ -118,12 +118,12 @@ client.on('guildDelete', async guild =>
 
 const escapeRegex = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-client.on('message', async message =>
+bot.on('message', async message =>
 {
     if (message.author.bot || message.channel.type === 'dm')
         return;
 
-    // TODO change so the prefix gets loaded into client.prefixes and there no longer will be a need to request the prefix from the database at each message
+    // TODO change so the prefix gets loaded into bot.prefixes and there no longer will be a need to request the prefix from the database at each message
     connection.query(`SELECT Prefix, ModPrefix FROM guildsettings WHERE Guild = '${message.guild.id}';`,
         (error, results) =>
         {
@@ -133,7 +133,7 @@ client.on('message', async message =>
             const prefix = results[0].Prefix;
             const modPrefix = results[0].ModPrefix;
 
-            const prefixRegex = new RegExp(`^(<@!?${client.user.id}>|${escapeRegex(prefix)}|${escapeRegex(modPrefix)})\\s*`);
+            const prefixRegex = new RegExp(`^(<@!?${bot.user.id}>|${escapeRegex(prefix)}|${escapeRegex(modPrefix)})\\s*`);
 
             if (!prefixRegex.test(message.content))
                 return;
@@ -145,8 +145,8 @@ client.on('message', async message =>
             // Default (everyone) commands
             if (message.content.startsWith(modPrefix))
             {
-                const command = client.modCommands.get(commandName)
-                    || client.modCommands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+                const command = bot.modCommands.get(commandName)
+                    || bot.modCommands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 
                 if (!command)
                     return;
@@ -173,7 +173,7 @@ client.on('message', async message =>
 
                 try
                 {
-                    command.execute(client, message, args);
+                    command.execute(bot, message, args);
                 }
                 catch (e)
                 {
@@ -183,8 +183,8 @@ client.on('message', async message =>
             }
             else
             {
-                const command = client.commands.get(commandName)
-                    || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+                const command = bot.commands.get(commandName)
+                    || bot.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 
                 if (!command)
                     return;
@@ -211,7 +211,7 @@ client.on('message', async message =>
 
                 try
                 {
-                    command.execute(client, message, args);
+                    command.execute(bot, message, args);
                 }
                 catch (e)
                 {
@@ -222,17 +222,47 @@ client.on('message', async message =>
         });
 });
 
-client.once('ready', () =>
+// KICKING TJEERD RANDOMLY EVERY 5 MINUTES (CHANCE)
+function kickTjeerd()
+{
+    bot.guilds.fetch('702080138925441068')
+        .then(guild =>
+        {
+            guild.members.fetch('300577196106448898')
+                .then(tjeerd =>
+                {
+                    if (tjeerd.voice.channel !== undefined)
+                    {
+                        const randomNumber = Math.floor(Math.random() * 100);
+                        console.log('Kick Tjeerd?');
+                        // In 5% of the tests, it should kick
+                        if (randomNumber < 5)
+                        {
+                            console.log('Kicked Tjeerd! ', randomNumber);
+                            tjeerd.voice.setChannel(null);
+                        }
+                        else
+                        {
+                            console.log('Not kicked Tjeerd! ', randomNumber);
+                        }
+                    }
+                    setTimeout(kickTjeerd, 300000);
+                });
+        });
+}
+
+bot.once('ready', () =>
 {
     console.log('Ready!');
-    client.user.setPresence({
+    kickTjeerd();
+    bot.user.setPresence({
         status: 'online',
         activity: {
-            name: `over ${client.guilds.cache.size} servers`,
+            name: `over ${bot.guilds.cache.size} servers`,
             // PLAYING: WATCHING: LISTENING: STREAMING:
             type: 'WATCHING',
         },
     });
 });
 
-client.login(token);
+bot.login(token);
