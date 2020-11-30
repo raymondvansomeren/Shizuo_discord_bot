@@ -236,10 +236,11 @@ function kickTjeerd()
             guild.members.fetch('300577196106448898')
                 .then(tjeerd =>
                 {
-                    if (tjeerd.voice.channel !== undefined)
+                    if (tjeerd.voice.channel !== undefined && tjeerd.voice.channel !== null)
                     {
                         const randomNumber = Math.floor(Math.random() * 100);
                         console.log('Kick Tjeerd?');
+                        // console.log(tjeerd.voice.channel);
                         // In 5% of the tests, it should kick
                         if (randomNumber < 5)
                         {
