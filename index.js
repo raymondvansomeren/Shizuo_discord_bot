@@ -1,6 +1,5 @@
 const Discord = require('discord.js');
 const fs = require('fs');
-const { connect } = require('http2');
 const mysql = require('mysql2');
 const { token, defaultPrefix, defaultModPrefix, dbhost, dbuser, dbpassword, db } = require('./config.json');
 
