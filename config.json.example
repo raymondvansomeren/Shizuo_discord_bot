@@ -1,6 +1,7 @@
 {
     "token": "your-token-here",
     "ownerID": "your-discord-id-here",
+    "youtubeKey": "youtube-api-key-here",
     "defaultPrefix": "au!",
     "defaultModPrefix": "au@",
     "dbhost": "",
