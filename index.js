@@ -18,6 +18,8 @@ bot.prefixes = new Map();
 const cooldowns = new Discord.Collection();
 const modCooldowns = new Discord.Collection();
 
+bot.queue = new Discord.Collection();
+
 // Default (everyone) commands
 fs.readdir('./commands/', (err, files) =>
 {
