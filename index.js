@@ -4,7 +4,7 @@ const mysql = require('mysql2');
 const { token, defaultPrefix, defaultModPrefix, dbhost, dbuser, dbpassword, db } = require('./config.json');
 
 // const connection = mysql.createConnection({
-const connection = mysql.createConnection({
+const pool = mysql.createPool({
     host     : dbhost,
     user     : dbuser,
     password : dbpassword,
@@ -76,17 +76,45 @@ bot.on('guildCreate', async guild =>
         },
     });
 
-    connection.connect();
-    connection.query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
-        (error, results) =>
+    // connection.connect();
+    // connection.query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
+    //     (error, results) =>
+    //     {
+    //         if (error)
+    //             return console.log(error);
+
+    //         if (results.length < 1 || results == undefined)
+    //         {
+    //             connection.query(`INSERT INTO guildsettings (Guild, Prefix, ModPrefix) VALUES ('${guild.id}', '${defaultPrefix}', '${defaultModPrefix}');`,
+    //                 (error2, results2) =>
+    //                 {
+    //                     if (error2)
+    //                         return console.log(error2);
+    //                 });
+    //         }
+    //         else
+    //         {
+    //             connection.query(`UPDATE guildsettings SET Prefix = '${defaultPrefix}', ModPrefix = '${defaultModPrefix}' WHERE Guild = '${guild.id}';`,
+    //                 (error3, results3) =>
+    //                 {
+    //                     if (error3)
+    //                         return console.log(error3);
+    //                 });
+    //         }
+    //     });
+    // connection.end();
+
+    pool.query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
+        function(error, results, fields)
         {
             if (error)
-                return console.log(error);
+                return console.log('line: 111. file: index.js =>\n', error);
 
+            // TODO change to use INSERT ON EXIST
             if (results.length < 1 || results == undefined)
             {
-                connection.query(`INSERT INTO guildsettings (Guild, Prefix, ModPrefix) VALUES ('${guild.id}', '${defaultPrefix}', '${defaultModPrefix}');`,
-                    (error2, results2) =>
+                pool.query(`INSERT INTO guildsettings (Guild, Prefix, ModPrefix) VALUES ('${guild.id}', '${defaultPrefix}', '${defaultModPrefix}');`,
+                    function(error2, results2)
                     {
                         if (error2)
                             return console.log(error2);
@@ -94,15 +122,14 @@ bot.on('guildCreate', async guild =>
             }
             else
             {
-                connection.query(`UPDATE guildsettings SET Prefix = '${defaultPrefix}', ModPrefix = '${defaultModPrefix}' WHERE Guild = '${guild.id}';`,
-                    (error3, results3) =>
+                pool.query(`UPDATE guildsettings SET Prefix = '${defaultPrefix}', ModPrefix = '${defaultModPrefix}' WHERE Guild = '${guild.id}';`,
+                    function(error3, results3)
                     {
                         if (error3)
                             return console.log(error3);
                     });
             }
         });
-    connection.end();
 });
 
 bot.on('guildDelete', async guild =>
@@ -125,10 +152,12 @@ bot.on('message', async message =>
     if (message.author.bot || message.channel.type === 'dm')
         return;
 
-    connection.connect();
+    // connection.connect();
     // TODO change so the prefix gets loaded into bot.prefixes and there no longer will be a need to request the prefix from the database at each message
-    connection.query(`SELECT Prefix, ModPrefix FROM guildsettings WHERE Guild = '${message.guild.id}';`,
-        (error, results) =>
+    // connection.query(`SELECT Prefix, ModPrefix FROM guildsettings WHERE Guild = '${message.guild.id}';`,
+    //     (error, results) =>
+    pool.query(`SELECT Prefix, ModPrefix FROM guildsettings WHERE Guild = '${message.guild.id}';`,
+        function(error, results)
         {
             if (error)
                 return console.log(error);
@@ -223,7 +252,7 @@ bot.on('message', async message =>
                 }
             }
         });
-    connection.end();
+    // connection.end();
 });
 
 // KICKING TJEERD RANDOMLY EVERY 5 MINUTES (CHANCE)
