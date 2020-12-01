@@ -23,17 +23,18 @@ module.exports =
                 return;
             }
             const dispatcher = serverQueue.connection
-                .play(ytdl(song.url, { highWaterMark: 1<<25, quality: 'highestaudio' }), { highWaterMark: 25, plp: 5})
-                .on("finish", () => {
+                .play(ytdl(song.url, { highWaterMark: 1 << 25, quality: 'highestaudio' }), { highWaterMark: 25, plp: 5 })
+                .on('finish', () =>
+                {
                     serverQueue.songs.shift();
                     play(guild, serverQueue.songs[0]);
                 })
-                .on("error", error => console.error(error));
+                .on('error', error => console.error(error));
             dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
             serverQueue.textChannel.send(`Now playing: **${song.title}**\n(${song.url})`);
         }
 
-        serverQueue = bot.queue.get(message.guild.id);
+        const serverQueue = bot.queue.get(message.guild.id);
         const voiceChannel = message.member.voice.channel;
         if (!voiceChannel)
             return message.channel.send('You need to be in a voice channel to play music!');
@@ -64,11 +65,11 @@ module.exports =
             bot.queue.set(message.guild.id, queueContruct);
             // Pushing the song to our songs array
             queueContruct.songs.push(song);
-            
+
             try
             {
                 // Here we try to join the voicechat and save our connection into our object.
-                var connection = await voiceChannel.join();
+                const connection = await voiceChannel.join();
                 queueContruct.connection = connection;
                 // Calling the play function to start a song
                 play(message.guild, queueContruct.songs[0]);
