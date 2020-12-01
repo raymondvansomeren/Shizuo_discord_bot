@@ -11,8 +11,15 @@ module.exports =
         if (!message.member.voice.channel)
             return message.channel.send('You have to be in a voice channel to stop the music!');
 
-        serverQueue.songs = [];
-        serverQueue.connection.dispatcher.end();
+        if (!serverQueue)
+        {
+            message.guild.me.voice.setChannel(null);
+        }
+        else
+        {
+            serverQueue.songs = [];
+            serverQueue.connection.dispatcher.end();
+        }
 
         message.channel.send('Disconnected from voice');
     },
