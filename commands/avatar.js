@@ -3,6 +3,7 @@ module.exports =
     name: 'avatar',
     description: '',
     aliases: ['icon', 'pfp'],
+    usage: '[mentions (not required)]',
     execute(bot, message, args)
     {
         if (!message.mentions.users.size)
