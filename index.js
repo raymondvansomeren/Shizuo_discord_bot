@@ -3,14 +3,6 @@ const fs = require('fs');
 const mysql = require('mysql2');
 const { token, defaultPrefix, defaultModPrefix, dbhost, dbuser, dbpassword, db } = require('./config.json');
 
-// const connection = mysql.createConnection({
-const pool = mysql.createPool({
-    host     : dbhost,
-    user     : dbuser,
-    password : dbpassword,
-    database : db,
-});
-
 const bot = new Discord.Client();
 bot.commands = new Discord.Collection();
 bot.modCommands = new Discord.Collection();
@@ -19,6 +11,43 @@ const cooldowns = new Discord.Collection();
 const modCooldowns = new Discord.Collection();
 
 bot.queue = new Discord.Collection();
+
+const db_config =
+{
+    host     : dbhost,
+    user     : dbuser,
+    password : dbpassword,
+    database : db,
+};
+let connection;
+
+function handleDisconnect()
+{
+    // Recreate the connection, since the old one cannot be reused.
+    connection = mysql.createConnection(db_config);
+
+    // The server is either down or restarting (takes a while sometimes).
+    connection.connect(function(err)
+    {
+        if(err)
+        {
+            console.log('Error when connecting to db:', err);
+            // We introduce a delay before attempting to reconnect, to avoid a hot loop, and to allow our node script to process asynchronous requests in the meantime.
+            setTimeout(handleDisconnect, 2000);
+        }
+    });
+
+    connection.on('error', function(err)
+    {
+        console.log('db error', err);
+        // Connection to the MySQL server is usually lost due to either server restart, or a connnection idle timeout (the wait_timeout server variable configures this)
+        if(err.code === 'PROTOCOL_CONNECTION_LOST')
+            handleDisconnect();
+        else
+            throw err;
+    });
+}
+handleDisconnect();
 
 // Default (everyone) commands
 fs.readdir('./commands/', (err, files) =>
@@ -78,35 +107,7 @@ bot.on('guildCreate', async guild =>
         },
     });
 
-    // connection.connect();
-    // connection.query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
-    //     (error, results) =>
-    //     {
-    //         if (error)
-    //             return console.log(error);
-
-    //         if (results.length < 1 || results == undefined)
-    //         {
-    //             connection.query(`INSERT INTO guildsettings (Guild, Prefix, ModPrefix) VALUES ('${guild.id}', '${defaultPrefix}', '${defaultModPrefix}');`,
-    //                 (error2, results2) =>
-    //                 {
-    //                     if (error2)
-    //                         return console.log(error2);
-    //                 });
-    //         }
-    //         else
-    //         {
-    //             connection.query(`UPDATE guildsettings SET Prefix = '${defaultPrefix}', ModPrefix = '${defaultModPrefix}' WHERE Guild = '${guild.id}';`,
-    //                 (error3, results3) =>
-    //                 {
-    //                     if (error3)
-    //                         return console.log(error3);
-    //                 });
-    //         }
-    //     });
-    // connection.end();
-
-    pool.query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
+    connection.query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
         function(error, results, fields)
         {
             if (error)
@@ -115,7 +116,7 @@ bot.on('guildCreate', async guild =>
             // TODO change to use INSERT ON EXIST
             if (results.length < 1 || results == undefined)
             {
-                pool.query(`INSERT INTO guildsettings (Guild, Prefix, ModPrefix) VALUES ('${guild.id}', '${defaultPrefix}', '${defaultModPrefix}');`,
+                connection.query(`INSERT INTO guildsettings (Guild, Prefix, ModPrefix) VALUES ('${guild.id}', '${defaultPrefix}', '${defaultModPrefix}');`,
                     function(error2, results2)
                     {
                         if (error2)
@@ -124,7 +125,7 @@ bot.on('guildCreate', async guild =>
             }
             else
             {
-                pool.query(`UPDATE guildsettings SET Prefix = '${defaultPrefix}', ModPrefix = '${defaultModPrefix}' WHERE Guild = '${guild.id}';`,
+                connection.query(`UPDATE guildsettings SET Prefix = '${defaultPrefix}', ModPrefix = '${defaultModPrefix}' WHERE Guild = '${guild.id}';`,
                     function(error3, results3)
                     {
                         if (error3)
@@ -154,11 +155,8 @@ bot.on('message', async message =>
     if (message.author.bot || message.channel.type === 'dm')
         return;
 
-    // connection.connect();
     // TODO change so the prefix gets loaded into bot.prefixes and there no longer will be a need to request the prefix from the database at each message
-    // connection.query(`SELECT Prefix, ModPrefix FROM guildsettings WHERE Guild = '${message.guild.id}';`,
-    //     (error, results) =>
-    pool.query(`SELECT Prefix, ModPrefix FROM guildsettings WHERE Guild = '${message.guild.id}';`,
+    connection.query(`SELECT Prefix, ModPrefix FROM guildsettings WHERE Guild = '${message.guild.id}';`,
         function(error, results)
         {
             if (error)
@@ -254,7 +252,6 @@ bot.on('message', async message =>
                 }
             }
         });
-    // connection.end();
 });
 
 // KICKING TJEERD RANDOMLY EVERY 5 MINUTES (CHANCE)
