@@ -17,7 +17,7 @@ module.exports =
         if (serverQueue.songs.length === 1)
             message.channel.send('No songs remaining in the queue. Disconnected from voice');
         else
-            message.channel.send(`Skipped **${serverQueue.songs[0].title}**`);
+            message.channel.send(`Skipped **${serverQueue.songs[0].title}**\n(${serverQueue.songs[0].url})`);
 
         serverQueue.connection.dispatcher.end();
     },
