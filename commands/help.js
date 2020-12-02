@@ -36,6 +36,7 @@ module.exports =
             data.push(`**Description:** ${command.description}`);
         if (command.usage)
             data.push(`**Usage:** ${defaultPrefix}${command.name} ${command.usage}`);
+        // TODO change to use live prefix
 
         data.push(`**Cooldown:** ${command.cooldown || 3} second(s)`);
 
