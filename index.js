@@ -255,33 +255,37 @@ bot.on('message', async message =>
 });
 
 // KICKING TJEERD RANDOMLY EVERY 5 MINUTES (CHANCE)
+const kickTjeerdOn = true;
 function kickTjeerd()
 {
-    bot.guilds.fetch('702080138925441068')
-        .then(guild =>
-        {
-            guild.members.fetch('300577196106448898')
-                .then(tjeerd =>
-                {
-                    if (tjeerd.voice.channel !== undefined && tjeerd.voice.channel !== null)
+    if (kickTjeerdOn)
+    {
+        bot.guilds.fetch('702080138925441068')
+            .then(guild =>
+            {
+                guild.members.fetch('300577196106448898')
+                    .then(tjeerd =>
                     {
-                        const randomNumber = Math.floor(Math.random() * 100);
-                        console.log('Kick Tjeerd?');
-                        // console.log(tjeerd.voice.channel);
-                        // In 5% of the tests, it should kick
-                        if (randomNumber < 5)
+                        if (tjeerd.voice.channel !== undefined && tjeerd.voice.channel !== null)
                         {
-                            console.log('Kicked Tjeerd! ', randomNumber);
-                            tjeerd.voice.setChannel(null);
+                            const randomNumber = Math.floor(Math.random() * 100);
+                            console.log('Kick Tjeerd?');
+                            // console.log(tjeerd.voice.channel);
+                            // In 5% of the tests, it should kick
+                            if (randomNumber < 5)
+                            {
+                                console.log('Kicked Tjeerd! ', randomNumber);
+                                tjeerd.voice.setChannel(null);
+                            }
+                            else
+                            {
+                                console.log('Not kicked Tjeerd! ', randomNumber);
+                            }
                         }
-                        else
-                        {
-                            console.log('Not kicked Tjeerd! ', randomNumber);
-                        }
-                    }
-                    setTimeout(kickTjeerd, 300000);
-                });
-        });
+                        setTimeout(kickTjeerd, 300000);
+                    });
+            });
+    }
 }
 
 bot.once('ready', () =>
