@@ -14,6 +14,9 @@ module.exports =
     cooldown: 3,
     async execute(bot, message, args)
     {
+        if (message.member.roles.find(role => role.name.toLowerCase() === 'nomusic') || message.member.roles.find(role => role.name.toLowerCase() === 'incapacitated'))
+            return message.channel.send('Seems like you aren\'t allowed to use the music features :confused:');
+
         if (args.length === 0)
             return message.channel.send('You didn\'t pass me a song');
 
