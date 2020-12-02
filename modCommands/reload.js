@@ -4,7 +4,7 @@ module.exports =
 {
     name: 'reload',
     description: 'Reloads a command',
-    cooldown: 10,
+    cooldown: 0,
     execute(bot, message, args)
     {
         if (message.author.id === ownerID)
