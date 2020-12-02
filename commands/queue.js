@@ -12,7 +12,7 @@ module.exports =
     async execute(bot, message, args)
     {
         const serverQueue = bot.queue.get(message.guild.id);
-        if (serverQueue.songs.length === 1)
+        if (!serverQueue || serverQueue.songs.length === 1)
             return message.channel.send('There are no songs in the queue');
 
         const embeddedQueue = new Discord.MessageEmbed();
