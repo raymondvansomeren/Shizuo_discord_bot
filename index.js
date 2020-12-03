@@ -27,15 +27,15 @@ function handleDisconnect()
     connection = mysql.createConnection(db_config);
 
     // The server is either down or restarting (takes a while sometimes).
-    connection.connect(function(err)
-    {
-        if(err)
-        {
-            console.log('Error when connecting to db:', err);
+//    connection.connect(function(err)
+//    {
+//        if(err)
+//        {
+//            console.log('Error when connecting to db:', err);
             // We introduce a delay before attempting to reconnect, to avoid a hot loop, and to allow our node script to process asynchronous requests in the meantime.
-            setTimeout(handleDisconnect, 2000);
-        }
-    });
+//            setTimeout(handleDisconnect, 2000);
+//        }
+//    });
 
     connection.on('error', function(err)
     {
@@ -167,15 +167,15 @@ bot.on('message', async message =>
 
             const prefixRegex = new RegExp(`^(<@!?${bot.user.id}>|${escapeRegex(prefix)}|${escapeRegex(modPrefix)})\\s*`);
 
-            if (!prefixRegex.test(message.content))
+            if (!prefixRegex.test(message.content.toLowerCase()))
                 return;
 
-            const [, matchedPrefix] = message.content.match(prefixRegex);
+            const [, matchedPrefix] = message.content.toLowerCase().match(prefixRegex);
             const args = message.content.slice(matchedPrefix.length).trim().split(/ +/);
             const commandName = args.shift().toLowerCase();
 
-            // Default (everyone) commands
-            if (message.content.startsWith(modPrefix))
+            // Moderation  commands
+            if (message.content.toLowerCase().startsWith(modPrefix))
             {
                 const command = bot.modCommands.get(commandName)
                     || bot.modCommands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
@@ -184,7 +184,7 @@ bot.on('message', async message =>
                     return;
 
                 if (!modCooldowns.has(command.name))
-                    modCooldowns.set(command.name, new Discord.Collection());
+                    modCooldownss.set(command.name, new Discord.Collection());
 
                 const now = Date.now();
                 const timestamps = modCooldowns.get(command.name);
@@ -213,6 +213,7 @@ bot.on('message', async message =>
                     message.reply('there was an error trying to execute that command!');
                 }
             }
+            // Default (everyone) commands
             else
             {
                 const command = bot.commands.get(commandName)
