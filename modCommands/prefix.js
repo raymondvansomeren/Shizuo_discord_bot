@@ -21,6 +21,7 @@ module.exports =
         if (args[0].length > 5)
             return message.channel.send('The prefix may not surpass 5 characters.');
 
+        // TODO set bot.prefix
         connection.query(`SELECT ModPrefix FROM guildsettings WHERE Guild = '${message.guild.id}'`,
             function(error, results, fields)
             {
@@ -33,12 +34,12 @@ module.exports =
                     return message.channel.send('You can\'t have the same prefix for default commands as you have for moderation commands.');
 
                 connection.query(`UPDATE guildsettings SET Prefix = '${args[0]}' WHERE Guild = '${message.guild.id}'`,
-                    function(error, results, fields)
+                    function(error2, results2, fields2)
                     {
-                        if (error)
+                        if (error2)
                         {
-                            message.channel.send(error);
-                            return console.log(error);
+                            message.channel.send(error2);
+                            return console.log(error2);
                         }
                         message.channel.send(`Succesfully changed the prefix to \`${args[0]}\``);
                     });
