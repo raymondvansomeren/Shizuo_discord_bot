@@ -1,12 +1,17 @@
 const Discord = require('discord.js');
 const fs = require('fs');
 const mysql = require('mysql2');
+// TODO Get error PROTOCOL_CONNECTION_LOST handler
+const EventEmitter = require('events');
 const { token, defaultPrefix, defaultModPrefix, dbhost, dbuser, dbpassword, db } = require('./config.json');
 
 const bot = new Discord.Client();
 bot.commands = new Discord.Collection();
 bot.modCommands = new Discord.Collection();
-bot.prefixes = new Map();
+// TODO bot.prefixes.set(guildId, prefix)
+bot.prefixes = new Discord.Collection();
+// TODO bot.modPrefixes.set(guildId, modPrefix)
+bot.modPrefixes = new Discord.Collection();
 const cooldowns = new Discord.Collection();
 const modCooldowns = new Discord.Collection();
 
@@ -19,7 +24,7 @@ const db_config =
     password : dbpassword,
     database : db,
     enableKeepAlive: true,
-    debug    : true,
+    // debug    : true,
 };
 let connection;
 
@@ -29,29 +34,39 @@ function handleDisconnect()
     connection = mysql.createConnection(db_config);
 
     // The server is either down or restarting (takes a while sometimes).
-//    connection.connect(function(err)
-//    {
-//        if(err)
-//        {
-//            console.log('Error when connecting to db:', err);
-            // We introduce a delay before attempting to reconnect, to avoid a hot loop, and to allow our node script to process asynchronous requests in the meantime.
-//            setTimeout(handleDisconnect, 2000);
-//        }
-//    });
-
-    connection.on('error', function(err)
+    connection.connect(function(err)
     {
-        console.log('db error', err);
-        // Connection to the MySQL server is usually lost due to either server restart, or a connnection idle timeout (the wait_timeout server variable configures this)
-        if(err.code === 'PROTOCOL_CONNECTION_LOST')
-            handleDisconnect();
-        else
-	    console.error(err);
-	    handleDisconnect();
-//            throw err;
+        if(err)
+        {
+            console.log('Error when connecting to db:', err);
+            // We introduce a delay before attempting to reconnect, to avoid a hot loop, and to allow our node script to process asynchronous requests in the meantime.
+            setTimeout(handleDisconnect, 2000);
+        }
     });
 }
 handleDisconnect();
+// TODO Get error PROTOCOL_CONNECTION_LOST handler
+const ee = new EventEmitter();
+ee.on('error', function(error)
+{
+    console.error(`Some error received: ${error.code}`);
+    if (error.code === 'PROTOCOL_CONNECTION_LOST')
+        console.log('AAAAHHH!! Here shall do, Pig.');
+        // handleDisconnect();
+});
+connection.on('error', function(err)
+{
+    console.log('db error', err);
+    // Connection to the MySQL server is usually lost due to either server restart, or a connnection idle timeout (the wait_timeout server variable configures this)
+    if(err.code === 'PROTOCOL_CONNECTION_LOST')
+        handleDisconnect();
+    else
+        throw err;
+    // console.error(err);
+    // handleDisconnect();
+    // throw err;
+});
+
 
 // Default (everyone) commands
 fs.readdir('./commands/', (err, files) =>
@@ -188,7 +203,7 @@ bot.on('message', async message =>
                     return;
 
                 if (!modCooldowns.has(command.name))
-                    modCooldownss.set(command.name, new Discord.Collection());
+                    modCooldowns.set(command.name, new Discord.Collection());
 
                 const now = Date.now();
                 const timestamps = modCooldowns.get(command.name);
@@ -295,6 +310,8 @@ function kickTjeerd()
 
 bot.once('ready', () =>
 {
+    // TODO set bot.prefixes and bot.modPrefixes
+
     console.log('Ready!');
     kickTjeerd();
     bot.user.setPresence({

@@ -74,6 +74,15 @@ module.exports =
             if (error)
                 return console.log(error);
 
+            // for (let i = 0;;i++)
+            // {
+            //     if (result.items[1].id.kind === 'youtube#video')
+            //     {
+            //         song.title = result.items[0].snippet.title;
+            //         song.url = `https://www.youtube.com/watch?v=${result.items[0].id.videoId}`;
+            //         break;
+            //     }
+            // }
             if (result.items[0].id.kind === 'youtube#video')
             {
                 song.title = result.items[0].snippet.title;
