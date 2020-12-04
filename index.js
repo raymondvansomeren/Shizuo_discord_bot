@@ -18,6 +18,8 @@ const db_config =
     user     : dbuser,
     password : dbpassword,
     database : db,
+    enableKeepAlive: true,
+    debug    : true,
 };
 let connection;
 
@@ -44,7 +46,9 @@ function handleDisconnect()
         if(err.code === 'PROTOCOL_CONNECTION_LOST')
             handleDisconnect();
         else
-            throw err;
+	    console.error(err);
+	    handleDisconnect();
+//            throw err;
     });
 }
 handleDisconnect();
