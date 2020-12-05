@@ -1,4 +1,4 @@
-const { defaultPrefix } = require('../config.json');
+// const { defaultPrefix } = require('../config.json');
 
 module.exports =
 {
@@ -17,7 +17,7 @@ module.exports =
             data.push('Here\'s a list of all my commands:');
             for (const cmd of commands.map(command => command.name))
                 data.push(`:white_small_square: **${cmd}**`);
-            data.push(`\nYou can send \`${defaultPrefix}help [command name]\` to get info on a specific command!`);
+            data.push(`\nYou can send \`${bot.prefixes.get(message.guild.id)}help [command name]\` to get info on a specific command!`);
 
             return message.channel.send(data, { split: true });
         }
@@ -35,8 +35,7 @@ module.exports =
         if (command.description)
             data.push(`**Description:** ${command.description}`);
         if (command.usage)
-            data.push(`**Usage:** ${defaultPrefix}${command.name} ${command.usage}`);
-        // TODO change to use live prefix
+            data.push(`**Usage:** ${bot.prefixes.get(message.guild.id)}${command.name} ${command.usage}`);
 
         data.push(`**Cooldown:** ${command.cooldown || 3} second(s)`);
 

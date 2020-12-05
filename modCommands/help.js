@@ -1,4 +1,4 @@
-const { defaultModPrefix } = require('../config.json');
+// const { defaultModPrefix } = require('../config.json');
 
 module.exports =
 {
@@ -20,7 +20,7 @@ module.exports =
                 if (cmd !== 'reload')
                     data.push(`:white_small_square: **${cmd}**`);
             }
-            data.push(`\nYou can send \`${defaultModPrefix}help [command name]\` to get info on a specific command!`);
+            data.push(`\nYou can send \`${bot.modPrefixes.get(message.guild.id)}help [command name]\` to get info on a specific command!`);
 
             return message.channel.send(data, { split: true });
         }
@@ -38,8 +38,7 @@ module.exports =
         if (command.description)
             data.push(`**Description:** ${command.description}`);
         if (command.usage)
-            data.push(`**Usage:** ${defaultModPrefix}${command.name} ${command.usage}`);
-        // TODO change to use live mod prefix
+            data.push(`**Usage:** ${bot.modPrefixes.get(message.guild.id)}${command.name} ${command.usage}`);
 
         data.push(`**Cooldown:** ${command.cooldown || 3} second(s)`);
 

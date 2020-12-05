@@ -1,16 +1,12 @@
 const Discord = require('discord.js');
 const fs = require('fs');
 const mysql = require('mysql2');
-// TODO Get error PROTOCOL_CONNECTION_LOST handler
-const EventEmitter = require('events');
 const { token, defaultPrefix, defaultModPrefix, dbhost, dbuser, dbpassword, db } = require('./config.json');
 
 const bot = new Discord.Client();
 bot.commands = new Discord.Collection();
 bot.modCommands = new Discord.Collection();
-// TODO bot.prefixes.set(guildId, prefix)
 bot.prefixes = new Discord.Collection();
-// TODO bot.modPrefixes.set(guildId, modPrefix)
 bot.modPrefixes = new Discord.Collection();
 const cooldowns = new Discord.Collection();
 const modCooldowns = new Discord.Collection();
@@ -43,29 +39,18 @@ function handleDisconnect()
             setTimeout(handleDisconnect, 2000);
         }
     });
+
+    connection.on('error', function(err)
+    {
+        console.log('db error', err);
+        // Connection to the MySQL server is usually lost due to either server restart, or a connnection idle timeout (the wait_timeout server variable configures this)
+        if (err.code === 'PROTOCOL_CONNECTION_LOST')
+            handleDisconnect();
+        else
+            throw err;
+    });
 }
 handleDisconnect();
-// TODO Get error PROTOCOL_CONNECTION_LOST handler
-const ee = new EventEmitter();
-ee.on('error', function(error)
-{
-    console.error(`Some error received: ${error.code}`);
-    if (error.code === 'PROTOCOL_CONNECTION_LOST')
-        console.log('AAAAHHH!! Here shall do, Pig.');
-        // handleDisconnect();
-});
-connection.on('error', function(err)
-{
-    console.log('db error', err);
-    // Connection to the MySQL server is usually lost due to either server restart, or a connnection idle timeout (the wait_timeout server variable configures this)
-    if(err.code === 'PROTOCOL_CONNECTION_LOST')
-        handleDisconnect();
-    else
-        throw err;
-    // console.error(err);
-    // handleDisconnect();
-    // throw err;
-});
 
 
 // Default (everyone) commands
@@ -152,6 +137,8 @@ bot.on('guildCreate', async guild =>
                     });
             }
         });
+    bot.prefixes.set(guild.id, defaultPrefix);
+    bot.modPrefixes.set(guild.id, defaultModPrefix);
 });
 
 bot.on('guildDelete', async guild =>
@@ -173,105 +160,93 @@ bot.on('message', async message =>
 {
     if (message.author.bot || message.channel.type === 'dm')
         return;
+    const prefixRegex = new RegExp(`^(<@!?${bot.user.id}>|${escapeRegex(bot.prefixes.get(message.guild.id))}|${escapeRegex(bot.modPrefixes.get(message.guild.id))})\\s*`);
 
-    // TODO change so the prefix gets loaded into bot.prefixes and there no longer will be a need to request the prefix from the database at each message
-    connection.query(`SELECT Prefix, ModPrefix FROM guildsettings WHERE Guild = '${message.guild.id}';`,
-        function(error, results)
+    if (!prefixRegex.test(message.content.toLowerCase()))
+        return;
+
+    const [, matchedPrefix] = message.content.toLowerCase().match(prefixRegex);
+    const args = message.content.slice(matchedPrefix.length).trim().split(/ +/);
+    const commandName = args.shift().toLowerCase();
+
+    // Moderation  commands
+    if (message.content.toLowerCase().startsWith(bot.modPrefixes.get(message.guild.id)))
+    {
+        const command = bot.modCommands.get(commandName)
+            || bot.modCommands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+
+        if (!command)
+            return;
+
+        if (!modCooldowns.has(command.name))
+            modCooldowns.set(command.name, new Discord.Collection());
+
+        const now = Date.now();
+        const timestamps = modCooldowns.get(command.name);
+        const cooldownAmount = (command.cooldown || 3) * 1000;
+
+        if (timestamps.has(message.author.id))
         {
-            if (error)
-                return console.log(error);
+            const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
 
-            const prefix = results[0].Prefix;
-            const modPrefix = results[0].ModPrefix;
-
-            const prefixRegex = new RegExp(`^(<@!?${bot.user.id}>|${escapeRegex(prefix)}|${escapeRegex(modPrefix)})\\s*`);
-
-            if (!prefixRegex.test(message.content.toLowerCase()))
-                return;
-
-            const [, matchedPrefix] = message.content.toLowerCase().match(prefixRegex);
-            const args = message.content.slice(matchedPrefix.length).trim().split(/ +/);
-            const commandName = args.shift().toLowerCase();
-
-            // Moderation  commands
-            if (message.content.toLowerCase().startsWith(modPrefix))
+            if (now < expirationTime)
             {
-                const command = bot.modCommands.get(commandName)
-                    || bot.modCommands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
-
-                if (!command)
-                    return;
-
-                if (!modCooldowns.has(command.name))
-                    modCooldowns.set(command.name, new Discord.Collection());
-
-                const now = Date.now();
-                const timestamps = modCooldowns.get(command.name);
-                const cooldownAmount = (command.cooldown || 3) * 1000;
-
-                if (timestamps.has(message.author.id))
-                {
-                    const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
-
-                    if (now < expirationTime)
-                    {
-                        const timeLeft = (expirationTime - now) / 1000;
-                        return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
-                    }
-                }
-                timestamps.set(message.author.id, now);
-                setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
-
-                try
-                {
-                    command.execute(bot, message, args);
-                }
-                catch (e)
-                {
-                    console.error(e);
-                    message.reply('there was an error trying to execute that command!');
-                }
+                const timeLeft = (expirationTime - now) / 1000;
+                return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
             }
-            // Default (everyone) commands
-            else
+        }
+        timestamps.set(message.author.id, now);
+        setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+
+        try
+        {
+            command.execute(bot, message, args);
+        }
+        catch (e)
+        {
+            console.error(e);
+            message.reply('there was an error trying to execute that command!');
+        }
+    }
+    // Default (everyone) commands
+    else
+    {
+        const command = bot.commands.get(commandName)
+            || bot.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+
+        if (!command)
+            return;
+
+        if (!cooldowns.has(command.name))
+            cooldowns.set(command.name, new Discord.Collection());
+
+        const now = Date.now();
+        const timestamps = cooldowns.get(command.name);
+        const cooldownAmount = (command.cooldown || 3) * 1000;
+
+        if (timestamps.has(message.author.id))
+        {
+            const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
+
+            if (now < expirationTime)
             {
-                const command = bot.commands.get(commandName)
-                    || bot.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
-
-                if (!command)
-                    return;
-
-                if (!cooldowns.has(command.name))
-                    cooldowns.set(command.name, new Discord.Collection());
-
-                const now = Date.now();
-                const timestamps = cooldowns.get(command.name);
-                const cooldownAmount = (command.cooldown || 3) * 1000;
-
-                if (timestamps.has(message.author.id))
-                {
-                    const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
-
-                    if (now < expirationTime)
-                    {
-                        const timeLeft = (expirationTime - now) / 1000;
-                        return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
-                    }
-                }
-                timestamps.set(message.author.id, now);
-                setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
-
-                try
-                {
-                    command.execute(bot, message, args);
-                }
-                catch (e)
-                {
-                    console.error(e);
-                    message.reply('there was an error trying to execute that command!');
-                }
+                const timeLeft = (expirationTime - now) / 1000;
+                return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
             }
-        });
+        }
+        timestamps.set(message.author.id, now);
+        setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+
+        try
+        {
+            command.execute(bot, message, args);
+        }
+        catch (e)
+        {
+            console.error(e);
+            message.reply('there was an error trying to execute that command!');
+        }
+    }
 });
 
 // KICKING TJEERD RANDOMLY EVERY 5 MINUTES (CHANCE)
@@ -310,7 +285,18 @@ function kickTjeerd()
 
 bot.once('ready', () =>
 {
-    // TODO set bot.prefixes and bot.modPrefixes
+    connection.query('SELECT Guild, Prefix, ModPrefix FROM guildsettings;',
+        function(error, results)
+        {
+            if (error)
+                return console.log(error);
+
+            results.forEach(function(r)
+            {
+                bot.prefixes.set(r.Guild, r.Prefix);
+                bot.modPrefixes.set(r.Guild, r.ModPrefix);
+            });
+        });
 
     console.log('Ready!');
     kickTjeerd();
