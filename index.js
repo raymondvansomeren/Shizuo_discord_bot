@@ -118,7 +118,7 @@ fs.readdir('./modCommands/', (err, files) =>
 bot.on('guildCreate', async guild =>
 {
     now = new Date();
-    console.log(now.toUTCString(), ': New server joined!');
+    console.log(now.toUTCString(), `: New server joined! (${guild})`);
     bot.user.setPresence({
         status: 'online',
         activity: {
