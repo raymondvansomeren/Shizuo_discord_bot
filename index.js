@@ -13,6 +13,8 @@ const modCooldowns = new Discord.Collection();
 
 bot.queue = new Discord.Collection();
 
+let now = new Date();
+
 const db_config =
 {
     host     : dbhost,
@@ -34,7 +36,8 @@ function handleDisconnect()
     {
         if(err)
         {
-            console.log('Error when connecting to db:', err);
+            now = new Date();
+            console.error(now.toUTCString(), ': Error when connecting to db:', err);
             // We introduce a delay before attempting to reconnect, to avoid a hot loop, and to allow our node script to process asynchronous requests in the meantime.
             setTimeout(handleDisconnect, 2000);
         }
@@ -42,7 +45,8 @@ function handleDisconnect()
 
     connection.on('error', function(err)
     {
-        console.log('db error', err);
+        now = new Date();
+        console.error(now.toUTCString(), ': db error', err);
         // Connection to the MySQL server is usually lost due to either server restart, or a connnection idle timeout (the wait_timeout server variable configures this)
         if (err.code === 'PROTOCOL_CONNECTION_LOST')
             handleDisconnect();
@@ -57,21 +61,27 @@ handleDisconnect();
 fs.readdir('./commands/', (err, files) =>
 {
     if (err)
-        console.log(err);
-    console.log('Loading default commands.');
+    {
+        now = new Date();
+        console.log(now.toUTCString(), ':', err);
+    }
+    now = new Date();
+    console.log(now.toUTCString(), ': Loading default commands.');
 
     const jsfile = files.filter(f => f.split('.').pop() === 'js');
 
     if (jsfile.length <= 0)
     {
-        console.log('Couldn\'t find commands.');
+        now = new Date();
+        console.log(now.toUTCString(), ': Couldn\'t find commands.');
         return;
     }
 
     jsfile.forEach((f, i) =>
     {
         const props = require(`./commands/${f}`);
-        console.log(`${f} loaded!`);
+        now = new Date();
+        console.log(now.toUTCString(), `: ${f} loaded!`);
         bot.commands.set(props.name, props);
     });
 });
@@ -80,28 +90,35 @@ fs.readdir('./commands/', (err, files) =>
 fs.readdir('./modCommands/', (err, files) =>
 {
     if (err)
-        console.log(err);
-    console.log('Loading moderation commands.');
+    {
+        now = new Date();
+        console.error(now.toUTCString(), ':', err);
+    }
+    now = new Date();
+    console.log(now.toUTCString(), ': Loading moderation commands.');
 
     const jsfile = files.filter(f => f.split('.').pop() === 'js');
 
     if (jsfile.length <= 0)
     {
-        console.log('Couldn\'t find modCommands.');
+        now = new Date();
+        console.log(now.toUTCString(), ': Couldn\'t find modCommands.');
         return;
     }
 
     jsfile.forEach((f, i) =>
     {
         const props = require(`./modCommands/${f}`);
-        console.log(`${f} loaded!`);
+        now = new Date();
+        console.log(now.toUTCString(), `: ${f} loaded!`);
         bot.modCommands.set(props.name, props);
     });
 });
 
 bot.on('guildCreate', async guild =>
 {
-    console.log('New server joined!');
+    now = new Date();
+    console.log(now.toUTCString(), ': New server joined!');
     bot.user.setPresence({
         status: 'online',
         activity: {
@@ -115,7 +132,10 @@ bot.on('guildCreate', async guild =>
         function(error, results, fields)
         {
             if (error)
-                return console.log('line: 111. file: index.js =>\n', error);
+            {
+                now = new Date();
+                return console.error(now.toUTCString(), ': line: 111. file: index.js =>\n', error);
+            }
 
             // TODO change to use INSERT ON EXIST
             if (results.length < 1 || results == undefined)
@@ -124,7 +144,10 @@ bot.on('guildCreate', async guild =>
                     function(error2, results2)
                     {
                         if (error2)
-                            return console.log(error2);
+                        {
+                            now = new Date();
+                            return console.error(now.toUTCString(), ':', error2);
+                        }
                     });
             }
             else
@@ -133,7 +156,10 @@ bot.on('guildCreate', async guild =>
                     function(error3, results3)
                     {
                         if (error3)
-                            return console.log(error3);
+                        {
+                            now = new Date();
+                            return console.error(now.toUTCString(), ':', error3);
+                        }
                     });
             }
         });
@@ -143,7 +169,8 @@ bot.on('guildCreate', async guild =>
 
 bot.on('guildDelete', async guild =>
 {
-    console.log('Left a server!');
+    now = new Date();
+    console.log(now.toUTCString(), `: Left a server! (${guild})`);
     bot.user.setPresence({
         status: 'online',
         activity: {
@@ -181,7 +208,7 @@ bot.on('message', async message =>
         if (!modCooldowns.has(command.name))
             modCooldowns.set(command.name, new Discord.Collection());
 
-        const now = Date.now();
+        now = Date.now();
         const timestamps = modCooldowns.get(command.name);
         const cooldownAmount = (command.cooldown || 3) * 1000;
 
@@ -220,7 +247,7 @@ bot.on('message', async message =>
         if (!cooldowns.has(command.name))
             cooldowns.set(command.name, new Discord.Collection());
 
-        const now = Date.now();
+        now = Date.now();
         const timestamps = cooldowns.get(command.name);
         const cooldownAmount = (command.cooldown || 3) * 1000;
 
@@ -264,17 +291,20 @@ function kickTjeerd()
                         if (tjeerd.voice.channel !== undefined && tjeerd.voice.channel !== null)
                         {
                             const randomNumber = Math.floor(Math.random() * 100);
-                            console.log('Kick Tjeerd?');
+                            now = new Date();
+                            console.log(now.toUTCString(), ': Kick Tjeerd?');
                             // console.log(tjeerd.voice.channel);
                             // In 5% of the tests, it should kick
                             if (randomNumber < 5)
                             {
-                                console.log('Kicked Tjeerd! ', randomNumber);
+                                now = new Date();
+                                console.log(now.toUTCString(), ': Kicked Tjeerd! ', randomNumber);
                                 tjeerd.voice.setChannel(null);
                             }
                             else
                             {
-                                console.log('Not kicked Tjeerd! ', randomNumber);
+                                now = new Date();
+                                console.log(now.toUTCString(), ': Not kicked Tjeerd! ', randomNumber);
                             }
                         }
                         setTimeout(kickTjeerd, 300000);
@@ -289,7 +319,10 @@ bot.once('ready', () =>
         function(error, results)
         {
             if (error)
-                return console.log(error);
+            {
+                now = new Date();
+                console.error(now.toUTCString(), ':', error);
+            }
 
             results.forEach(function(r)
             {
@@ -298,7 +331,8 @@ bot.once('ready', () =>
             });
         });
 
-    console.log('Ready!');
+    now = new Date();
+    console.log(now.toUTCString(), ': Ready!');
     kickTjeerd();
     bot.user.setPresence({
         status: 'online',
