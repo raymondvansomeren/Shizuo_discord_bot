@@ -37,7 +37,8 @@ module.exports =
                 }
                 catch (error)
                 {
-                    console.error(error);
+                    const now = new Date();
+                    console.error(now.toUTCString(), ':', error);
                     message.channel.send(`There was an error while reloading a default command \`${command.name}\`:\n\`${error.message}\`\nPlease contact the dev: \`raymond570#2966\``);
                 }
                 break;
@@ -65,7 +66,8 @@ module.exports =
                 }
                 catch (error)
                 {
-                    console.error(error);
+                    const now = new Date();
+                    console.error(now.toUTCString(), ':', error);
                     message.channel.send(`There was an error while reloading a moderation command \`${command.name}\`:\n\`${error.message}\`\nPlease contact the dev: \`raymond570#2966\``);
                 }
                 break;

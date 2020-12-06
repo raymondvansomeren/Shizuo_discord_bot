@@ -92,7 +92,7 @@ fs.readdir('./modCommands/', (err, files) =>
     if (err)
     {
         now = new Date();
-        console.error(now.toUTCString(), ':', err);
+        return console.error(now.toUTCString(), ':', err);
     }
     now = new Date();
     console.log(now.toUTCString(), ': Loading moderation commands.');
@@ -231,7 +231,8 @@ bot.on('message', async message =>
         }
         catch (e)
         {
-            console.error(e);
+            now = new Date();
+            console.error(now.toUTCString(), ':', e);
             message.reply('there was an error trying to execute that command!');
         }
     }
@@ -270,7 +271,8 @@ bot.on('message', async message =>
         }
         catch (e)
         {
-            console.error(e);
+            now = new Date();
+            console.error(now.toUTCString(), ':' e);
             message.reply('there was an error trying to execute that command!');
         }
     }
@@ -321,7 +323,7 @@ bot.once('ready', () =>
             if (error)
             {
                 now = new Date();
-                console.error(now.toUTCString(), ':', error);
+                return console.error(now.toUTCString(), ':', error);
             }
 
             results.forEach(function(r)

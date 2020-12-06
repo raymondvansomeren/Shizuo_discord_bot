@@ -1,3 +1,5 @@
+let now = new Date();
+
 module.exports =
 {
     name: 'prune',
@@ -53,7 +55,8 @@ module.exports =
                 message.channel.send('No message got deleted')
                     .then(msg =>
                     {
-                        console.log(err);
+                        now = new Date();
+                        console.error(now.toUTCString(), ':', err);
                         msg.delete({ timeout: 5000 });
                         message.delete({ timeout: 5000 });
                     });

@@ -8,6 +8,8 @@ const connection = mysql.createConnection({
     database : db,
 });
 
+let now = new Date();
+
 module.exports =
 {
     name: 'prefix',
@@ -27,7 +29,8 @@ module.exports =
                 if (error)
                 {
                     message.channel.send(error);
-                    return console.log(error);
+                    now = new Date();
+                    return console.error(now.toUTCString(), ':', error);
                 }
                 if (results[0].ModPrefix === args[0])
                     return message.channel.send('You can\'t have the same prefix for default commands as you have for moderation commands.');
@@ -38,7 +41,8 @@ module.exports =
                         if (error2)
                         {
                             message.channel.send(error2);
-                            return console.log(error2);
+                            now = new Date();
+                            return console.error(now.toUTCString(), ':', error2);
                         }
                         bot.prefixes.set(message.guild.id, args[0]);
                         message.channel.send(`Succesfully changed the prefix to \`${args[0]}\``);

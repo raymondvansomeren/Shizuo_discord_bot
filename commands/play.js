@@ -5,6 +5,8 @@ const { youtubeKey } = require('../config.json');
 
 youtube.setKey(youtubeKey);
 
+let now = new Date();
+
 module.exports =
 {
     name: 'play',
@@ -39,7 +41,8 @@ module.exports =
                 })
                 .on('error', (error) =>
                 {
-                    console.error(error);
+                    now = new Date();
+                    console.error(now.toUTCString(), ':', error);
                 });
 
             dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
@@ -72,7 +75,10 @@ module.exports =
         youtube.search(fullArgs, 2, async function(error, result)
         {
             if (error)
-                return console.log(error);
+            {
+                now = new Date();
+                return console.error(now.toUTCString(), ':', error);
+            }
 
             // for (let i = 0;;i++)
             // {
@@ -122,7 +128,8 @@ module.exports =
                 catch (err)
                 {
                     // Printing the error message if the bot fails to join the voicechat
-                    console.log(err);
+                    now = new Date();
+                    console.error(now.toUTCString(), ':', err);
                     bot.queue.delete(message.guild.id);
                     return message.channel.send(err);
                 }
@@ -130,7 +137,6 @@ module.exports =
             else
             {
                 serverQueue.songs.push(song);
-                // console.log(serverQueue.songs);
                 return message.channel.send(`**${song.title}** has been added to the queue!\n(${song.url})`);
             }
         });
