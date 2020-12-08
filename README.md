@@ -7,7 +7,7 @@
 ## What to do
 
 * Change the filename of `config.json.example` to `config.json`
-* Inside that file; change `your-token-here` to your bot-token. Should look like: `"token": "NzYxMjYyMjEwMjA2NTMxNjQ1.X3YCrg.RS-iF3P2-qTPYD6O31_hm1klSao"`
+* Inside that file; change `your-token-here` to your bot-token. Should look like: `"token": "Nzxxxxxxxxxxxxx2NTMxNjQ1.X3YCrg.RS-iF3P2-xxxxxxxxx_hm1klSao"`
 * Change `your-discord-id-here` to your own discord id, get it by enabling developer mode on discord, right-click your name in any server, and copy id. When you pasted it into the `config.json` file, it should look like: `"ownerid": "270871921137000000"`
 * Change `youtube-api-key-here` to your youtube api key. Should look something like: `"youtubeKey": "AIxxSxCxTxFxxx4M7xxOE80Q3OGxxxx8ADJB-FA"`
 * Rest in the config file should speak for itself.
