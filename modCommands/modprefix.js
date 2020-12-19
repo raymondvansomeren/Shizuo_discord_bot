@@ -20,9 +20,23 @@ module.exports =
     execute(bot, message, args)
     {
         if (!message.member.hasPermission('MANAGE_GUILD'))
-            return message.channel.send('You don\'t have permission to use this command.');
+        {
+            return message.channel.send('You don\'t have permission to use this command.')
+                .then(msg =>
+                {
+                    message.delete({ timeout: 5000 });
+                    msg.delete({ timeout: 5000 });
+                });
+        }
         if (args[0].length > 5)
-            return message.channel.send('The modPrefix may not surpass 5 characters.');
+        {
+            return message.channel.send('The modPrefix may not surpass 5 characters.')
+                .then(msg =>
+                {
+                    message.delete({ timeout: 5000 });
+                    msg.delete({ timeout: 5000 });
+                });
+        }
 
         connection.query(`SELECT Prefix FROM guildsettings WHERE Guild = '${message.guild.id}'`,
             function(error, results, fields)
@@ -34,7 +48,14 @@ module.exports =
                     return console.error(now.toUTCString(), ':', error);
                 }
                 if (results[0].Prefix === args[0])
-                    return message.channel.send('You can\'t have the same prefix for moderation commands as you have for default commands.');
+                {
+                    return message.channel.send('You can\'t have the same prefix for moderation commands as you have for default commands.')
+                        .then(msg =>
+                        {
+                            message.delete({ timeout: 5000 });
+                            msg.delete({ timeout: 5000 });
+                        });
+                }
 
                 connection.query(`UPDATE guildsettings SET ModPrefix = '${args[0]}' WHERE Guild = '${message.guild.id}'`,
                     function(error2, results2, fields2)
@@ -46,7 +67,12 @@ module.exports =
                             return console.error(now.toUTCString(), ':', error2);
                         }
                         bot.modPrefixes.set(message.guild.id, args[0]);
-                        message.channel.send(`Succesfully changed the moderation prefix to \`${args[0]}\``);
+                        message.channel.send(`Succesfully changed the moderation prefix to \`${args[0]}\``)
+                            .then(msg =>
+                            {
+                                message.delete({ timeout: 5000 });
+                                msg.delete({ timeout: 5000 });
+                            });
                     });
             });
     },

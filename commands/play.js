@@ -17,10 +17,24 @@ module.exports =
     async execute(bot, message, args)
     {
         if (message.member.roles.cache.find(role => role.name.toLowerCase() === 'nomusic') || message.member.roles.cache.find(role => role.name.toLowerCase() === 'incapacitated'))
-            return message.channel.send('Seems like you aren\'t allowed to use the music features :confused:');
+        {
+            return message.channel.send('Seems like you aren\'t allowed to use the music features :confused:')
+                .then(msg =>
+                {
+                    message.delete({ timeout: 5000 });
+                    msg.delete({ timeout: 5000 });
+                });
+        }
 
         if (args.length === 0)
-            return message.channel.send('You didn\'t pass me a song');
+        {
+            return message.channel.send('You didn\'t pass me a song')
+                .then(msg =>
+                {
+                    message.delete({ timeout: 5000 });
+                    msg.delete({ timeout: 5000 });
+                });
+        }
 
         function play(guild, song)
         {
@@ -52,11 +66,25 @@ module.exports =
         const serverQueue = bot.queue.get(message.guild.id);
         const voiceChannel = message.member.voice.channel;
         if (!voiceChannel)
-            return message.channel.send('You need to be in a voice channel to play music!');
+        {
+            return message.channel.send('You need to be in a voice channel to play music!')
+                .then(msg =>
+                {
+                    message.delete({ timeout: 5000 });
+                    msg.delete({ timeout: 5000 });
+                });
+        }
 
         const permissions = voiceChannel.permissionsFor(message.client.user);
         if (!permissions.has('CONNECT') || !permissions.has('SPEAK'))
-            return message.channel.send('I need the permissions to join and speak in your voice channel!');
+        {
+            return message.channel.send('I need the permissions to join and speak in your voice channel!')
+                .then(msg =>
+                {
+                    message.delete({ timeout: 5000 });
+                    msg.delete({ timeout: 5000 });
+                });
+        }
 
 
         const song =
@@ -131,7 +159,12 @@ module.exports =
                     now = new Date();
                     console.error(now.toUTCString(), ':', err);
                     bot.queue.delete(message.guild.id);
-                    return message.channel.send(err);
+                    return message.channel.send(err)
+                        .then(msg =>
+                        {
+                            message.delete({ timeout: 15000 });
+                            msg.delete({ timeout: 15000 });
+                        });
                 }
             }
             else

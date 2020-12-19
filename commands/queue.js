@@ -13,7 +13,14 @@ module.exports =
     {
         const serverQueue = bot.queue.get(message.guild.id);
         if (!serverQueue || serverQueue.songs.length === 1)
-            return message.channel.send('There are no songs in the queue');
+        {
+            return message.channel.send('There are no songs in the queue')
+                .then(msg =>
+                {
+                    message.delete({ timeout: 5000 });
+                    msg.delete({ timeout: 5000 });
+                });
+        }
 
         const embeddedQueue = new Discord.MessageEmbed();
         embeddedQueue.setThumbnail(bot.user.avatarURL());
@@ -32,7 +39,14 @@ module.exports =
         {
             page = args[0];
             if (page > pageAmount)
-                return message.channel.send(`I don't have that many queue pages. I only have ${pageAmount} pages`);
+            {
+                return message.channel.send(`I don't have that many queue pages. I only have ${pageAmount} pages`)
+                    .then(msg =>
+                    {
+                        message.delete({ timeout: 5000 });
+                        msg.delete({ timeout: 5000 });
+                    });
+            }
         }
         embeddedQueue.setFooter(`Page ${page}/${pageAmount}`, bot.user.avatarURL());
 

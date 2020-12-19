@@ -9,7 +9,14 @@ module.exports =
     {
         const serverQueue = bot.queue.get(message.guild.id);
         if (!serverQueue)
-            return message.channel.send('I have no songs playing right now');
+        {
+            return message.channel.send('I have no songs playing right now')
+                .then(msg =>
+                {
+                    message.delete({ timeout: 5000 });
+                    msg.delete({ timeout: 5000 });
+                });
+        }
 
         message.channel.send(`Currently playing **${serverQueue.songs[0].title}\n(${serverQueue.songs[0].url})**`);
     },

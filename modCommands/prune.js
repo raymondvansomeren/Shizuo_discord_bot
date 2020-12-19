@@ -11,7 +11,14 @@ module.exports =
     {
         // Check if a member has a specific permission on the guild!
         if (!message.member.hasPermission('MANAGE_MESSAGES'))
-            return message.channel.send('You don\'t have the permissions to use this command');
+        {
+            return message.channel.send('You don\'t have the permissions to use this command')
+                .then(msg =>
+                {
+                    message.delete({ timeout: 5000 });
+                    msg.delete({ timeout: 5000 });
+                });
+        }
 
         if (!isNaN(args[0]))
         {
@@ -64,7 +71,12 @@ module.exports =
         }
         else
         {
-            message.channel.send('You didn\'t send me a number.');
+            message.channel.send('You didn\'t send me a number.')
+                .then(msg =>
+                {
+                    message.delete({ timeout: 5000 });
+                    msg.delete({ timeout: 5000 });
+                });
         }
     },
 };
