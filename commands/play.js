@@ -117,6 +117,15 @@ module.exports =
             //         break;
             //     }
             // }
+            if (result.items[0] === undefined)
+            {
+                return message.channel.send(`Could not find ${fullArgs}`)
+                    .then(msg =>
+                    {
+                        message.delete({ timeout: 5000 });
+                        msg.delete({ timeout: 5000 });
+                    });
+            }
             if (result.items[0].id.kind === 'youtube#video')
             {
                 song.title = result.items[0].snippet.title;
