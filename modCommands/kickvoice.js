@@ -29,27 +29,60 @@ module.exports =
                         msg.delete({ timeout: 5000 });
                     });
             }
-
-            if (args.length === 1)
+            else if (message.member.voice.channelID === undefined || message.member.voice.channelID === null)
             {
-                toKick.voice.kick();
-                message.channel.send(`Succesfully kicked ${toKick} from the voice channel.`)
+                return message.channel.send(`${toKick} is not in a voice channel`)
                     .then(msg =>
                     {
                         message.delete({ timeout: 5000 });
                         msg.delete({ timeout: 5000 });
                     });
             }
+
+            if (args.length === 1)
+            {
+                toKick.voice.kick()
+                    .then(t =>
+                    {
+                        message.channel.send(`Succesfully kicked ${toKick} from the voice channel.`)
+                            .then(msg =>
+                            {
+                                message.delete({ timeout: 5000 });
+                                msg.delete({ timeout: 5000 });
+                            });
+                    })
+                    .catch(e =>
+                    {
+                        message.channel.send(`Failed to kick ${toKick} from the voice channel. Because ${e}`)
+                            .then(msg =>
+                            {
+                                message.delete({ timeout: 5000 });
+                                msg.delete({ timeout: 5000 });
+                            });
+                    });
+            }
             else if (args.length > 1)
             {
                 args.shift();
                 const reason = args.join(' ');
-                toKick.voice.kick({ reason: reason });
-                message.channel.send(`Succesfully kicked ${toKick} from the voice channel with reason \`${reason}\`.`)
-                    .then(msg =>
+                toKick.voice.kick({ reason: reason })
+                    .then(t =>
                     {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
+                        message.channel.send(`Succesfully kicked ${toKick} from the voice channel with reason \`${reason}\`.`)
+                            .then(msg =>
+                            {
+                                message.delete({ timeout: 5000 });
+                                msg.delete({ timeout: 5000 });
+                            });
+                    })
+                    .catch(e =>
+                    {
+                        message.channel.send(`Failed to kick ${toKick}. Because ${e}`)
+                            .then(msg =>
+                            {
+                                message.delete({ timeout: 5000 });
+                                msg.delete({ timeout: 5000 });
+                            });
                     });
             }
         }

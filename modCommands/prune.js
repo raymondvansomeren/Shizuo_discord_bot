@@ -19,6 +19,15 @@ module.exports =
                     msg.delete({ timeout: 5000 });
                 });
         }
+        else if (message.member.guild.me.hasPermission('MANAGE_MESSAGES'))
+        {
+            return message.channel.send('I don\'t have the permissions to manage messages')
+                .then(msg =>
+                {
+                    message.delete({ timeout: 5000 });
+                    msg.delete({ timeout: 5000 });
+                });
+        }
 
         if (!isNaN(args[0]))
         {

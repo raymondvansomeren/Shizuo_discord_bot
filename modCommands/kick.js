@@ -28,27 +28,60 @@ module.exports =
                         msg.delete({ timeout: 5000 });
                     });
             }
-
-            if (args.length === 1)
+            else if (!message.member.kickable)
             {
-                toKick.kick();
-                message.channel.send(`Succesfully kicked ${toKick}`)
+                return message.channel.send(`I can't kick ${toKick}`)
                     .then(msg =>
                     {
                         message.delete({ timeout: 5000 });
                         msg.delete({ timeout: 5000 });
                     });
             }
+
+            if (args.length === 1)
+            {
+                toKick.kick()
+                    .then(t =>
+                    {
+                        message.channel.send(`Succesfully kicked ${toKick}`)
+                            .then(msg =>
+                            {
+                                message.delete({ timeout: 5000 });
+                                msg.delete({ timeout: 5000 });
+                            });
+                    })
+                    .catch(e =>
+                    {
+                        message.channel.send(`Failed to kick ${toKick}. Because ${e}`)
+                            .then(msg =>
+                            {
+                                message.delete({ timeout: 5000 });
+                                msg.delete({ timeout: 5000 });
+                            });
+                    });
+            }
             else if (args.length > 1)
             {
                 args.shift();
                 const reason = args.join(' ');
-                toKick.kick({ reason: reason });
-                message.channel.send(`Succesfully kicked ${toKick} with reason \`${reason}\``)
-                    .then(msg =>
+                toKick.kick({ reason: reason })
+                    .then(t =>
                     {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
+                        message.channel.send(`Succesfully kicked ${toKick} with reason \`${reason}\``)
+                            .then(msg =>
+                            {
+                                message.delete({ timeout: 5000 });
+                                msg.delete({ timeout: 5000 });
+                            });
+                    })
+                    .catch(e =>
+                    {
+                        message.channel.send(`Failed to kick ${toKick}. Because ${e}`)
+                            .then(msg =>
+                            {
+                                message.delete({ timeout: 5000 });
+                                msg.delete({ timeout: 5000 });
+                            });
                     });
             }
         }

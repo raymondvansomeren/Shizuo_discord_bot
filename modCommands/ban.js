@@ -19,7 +19,14 @@ module.exports =
         {
             const toBan = message.guild.member(message.mentions.users.first()) || message.guild.members.get(args[0]);
             if (!toBan)
-                return message.channel.send('Invalid User');
+            {
+                return message.channel.send('Invalid User')
+                    .then(msg =>
+                    {
+                        message.delete({ timeout: 5000 });
+                        msg.delete({ timeout: 5000 });
+                    });
+            }
             if (message.author.id === toBan.id)
             {
                 return message.channel.send('You can\'t ban yourself.')
@@ -29,27 +36,60 @@ module.exports =
                         msg.delete({ timeout: 5000 });
                     });
             }
-
-            if (args.length === 1)
+            else if (!message.member.kickable)
             {
-                toBan.ban();
-                message.channel.send(`Succesfully banned ${toBan}.`)
+                return message.channel.send(`I can't ban ${toBan}`)
                     .then(msg =>
                     {
                         message.delete({ timeout: 5000 });
                         msg.delete({ timeout: 5000 });
                     });
             }
+
+            if (args.length === 1)
+            {
+                toBan.ban()
+                    .then(t =>
+                    {
+                        message.channel.send(`Succesfully banned ${toBan}.`)
+                            .then(msg =>
+                            {
+                                message.delete({ timeout: 5000 });
+                                msg.delete({ timeout: 5000 });
+                            });
+                    })
+                    .catch(e =>
+                    {
+                        message.channel.send(`Failed to ban ${toBan}. Because ${e}`)
+                            .then(msg =>
+                            {
+                                message.delete({ timeout: 5000 });
+                                msg.delete({ timeout: 5000 });
+                            });
+                    });
+            }
             else if (args.length > 1)
             {
                 args.shift();
                 const reason = args.join(' ');
-                toBan.ban({ reason: reason });
-                message.channel.send(`Succesfully banned ${toBan} with reason \`${reason}\`.`)
-                    .then(msg =>
+                toBan.ban({ reason: reason })
+                    .then(t =>
                     {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
+                        message.channel.send(`Succesfully banned ${toBan} with reason \`${reason}\`.`)
+                            .then(msg =>
+                            {
+                                message.delete({ timeout: 5000 });
+                                msg.delete({ timeout: 5000 });
+                            });
+                    })
+                    .catch(e =>
+                    {
+                        message.channel.send(`Failed to ban ${toBan}. Because ${e}`)
+                            .then(msg =>
+                            {
+                                message.delete({ timeout: 5000 });
+                                msg.delete({ timeout: 5000 });
+                            });
                     });
             }
         }
