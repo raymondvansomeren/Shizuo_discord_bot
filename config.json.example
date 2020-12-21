@@ -8,5 +8,15 @@
     "dbuser": "",
     "dbpassword": "",
     "db": "",
-    "invitelink": ""
+    "invitelink": "",
+    "vote": [
+        {
+            "name": "sitename one",
+            "link": "link one"
+        },
+        {
+            "name": "sitename two",
+            "link": "link two"
+        }
+    ]
 }
