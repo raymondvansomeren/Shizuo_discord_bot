@@ -28,7 +28,7 @@ module.exports =
                         msg.delete({ timeout: 5000 });
                     });
             }
-            else if (!message.member.kickable)
+            else if (!toKick.kickable)
             {
                 return message.channel.send(`I can't kick ${toKick}`)
                     .then(msg =>
