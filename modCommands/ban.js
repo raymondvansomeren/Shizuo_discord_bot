@@ -36,7 +36,7 @@ module.exports =
                         msg.delete({ timeout: 5000 });
                     });
             }
-            else if (!message.member.kickable)
+            else if (!toBan.kickable)
             {
                 return message.channel.send(`I can't ban ${toBan}`)
                     .then(msg =>
