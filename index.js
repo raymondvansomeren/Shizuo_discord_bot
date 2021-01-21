@@ -278,43 +278,6 @@ bot.on('message', async message =>
     }
 });
 
-// KICKING TJEERD RANDOMLY EVERY 5 MINUTES (CHANCE)
-const kickTjeerdOn = true;
-function kickTjeerd()
-{
-    if (kickTjeerdOn)
-    {
-        bot.guilds.fetch('702080138925441068')
-            .then(guild =>
-            {
-                guild.members.fetch('300577196106448898')
-                    .then(tjeerd =>
-                    {
-                        if (tjeerd.voice.channel !== undefined && tjeerd.voice.channel !== null)
-                        {
-                            const randomNumber = Math.floor(Math.random() * 100);
-                            now = new Date();
-                            console.log(now.toUTCString(), ': Kick Tjeerd?');
-                            // console.log(tjeerd.voice.channel);
-                            // In 5% of the tests, it should kick
-                            if (randomNumber < 5)
-                            {
-                                now = new Date();
-                                console.log(now.toUTCString(), ': Kicked Tjeerd! ', randomNumber);
-                                tjeerd.voice.setChannel(null);
-                            }
-                            else
-                            {
-                                now = new Date();
-                                console.log(now.toUTCString(), ': Not kicked Tjeerd! ', randomNumber);
-                            }
-                        }
-                        setTimeout(kickTjeerd, 300000);
-                    });
-            });
-    }
-}
-
 bot.once('ready', () =>
 {
     connection.query('SELECT Guild, Prefix, ModPrefix FROM guildsettings;',
@@ -335,7 +298,6 @@ bot.once('ready', () =>
 
     now = new Date();
     console.log(now.toUTCString(), ': Ready!');
-    kickTjeerd();
     bot.user.setPresence({
         status: 'online',
         activity: {
