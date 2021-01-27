@@ -4,7 +4,7 @@ module.exports =
 {
     name: 'invitelink',
     description: 'This command will return the invite link for the bot.',
-    aliases: ['invite', 'botinvite'],
+    aliases: ['invite', 'botinvite', 'link'],
     usage: '',
     cooldown: 3,
     execute(bot, message, args)

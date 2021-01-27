@@ -11,8 +11,11 @@ module.exports =
             return message.channel.send('You need to mention someone.')
                 .then(msg =>
                 {
-                    message.delete({ timeout: 5000 });
-                    msg.delete({ timeout: 5000 });
+                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                    {
+                        message.delete({ timeout: 5000 });
+                        msg.delete({ timeout: 5000 });
+                    }
                 });
         }
         if (message.member.hasPermission('BAN_MEMBERS'))
@@ -23,8 +26,11 @@ module.exports =
                 return message.channel.send('Invalid User')
                     .then(msg =>
                     {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
+                        if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                        {
+                            message.delete({ timeout: 5000 });
+                            msg.delete({ timeout: 5000 });
+                        }
                     });
             }
             if (message.author.id === toBan.id)
@@ -32,8 +38,11 @@ module.exports =
                 return message.channel.send('You can\'t ban yourself.')
                     .then(msg =>
                     {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
+                        if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                        {
+                            message.delete({ timeout: 5000 });
+                            msg.delete({ timeout: 5000 });
+                        }
                     });
             }
             else if (!toBan.kickable)
@@ -41,8 +50,11 @@ module.exports =
                 return message.channel.send(`I can't ban ${toBan}`)
                     .then(msg =>
                     {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
+                        if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                        {
+                            message.delete({ timeout: 5000 });
+                            msg.delete({ timeout: 5000 });
+                        }
                     });
             }
 
@@ -54,8 +66,11 @@ module.exports =
                         message.channel.send(`Succesfully banned ${toBan}.`)
                             .then(msg =>
                             {
-                                message.delete({ timeout: 5000 });
-                                msg.delete({ timeout: 5000 });
+                                if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                                {
+                                    message.delete({ timeout: 5000 });
+                                    msg.delete({ timeout: 5000 });
+                                }
                             });
                     })
                     .catch(e =>
@@ -63,8 +78,11 @@ module.exports =
                         message.channel.send(`Failed to ban ${toBan}. Because ${e}`)
                             .then(msg =>
                             {
-                                message.delete({ timeout: 5000 });
-                                msg.delete({ timeout: 5000 });
+                                if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                                {
+                                    message.delete({ timeout: 5000 });
+                                    msg.delete({ timeout: 5000 });
+                                }
                             });
                     });
             }
@@ -78,8 +96,11 @@ module.exports =
                         message.channel.send(`Succesfully banned ${toBan} with reason \`${reason}\`.`)
                             .then(msg =>
                             {
-                                message.delete({ timeout: 5000 });
-                                msg.delete({ timeout: 5000 });
+                                if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                                {
+                                    message.delete({ timeout: 5000 });
+                                    msg.delete({ timeout: 5000 });
+                                }
                             });
                     })
                     .catch(e =>
@@ -87,8 +108,11 @@ module.exports =
                         message.channel.send(`Failed to ban ${toBan}. Because ${e}`)
                             .then(msg =>
                             {
-                                message.delete({ timeout: 5000 });
-                                msg.delete({ timeout: 5000 });
+                                if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                                {
+                                    message.delete({ timeout: 5000 });
+                                    msg.delete({ timeout: 5000 });
+                                }
                             });
                     });
             }

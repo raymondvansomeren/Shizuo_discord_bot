@@ -24,8 +24,11 @@ module.exports =
             return message.channel.send('You don\'t have permission to use this command.')
                 .then(msg =>
                 {
-                    message.delete({ timeout: 5000 });
-                    msg.delete({ timeout: 5000 });
+                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                    {
+                        message.delete({ timeout: 5000 });
+                        msg.delete({ timeout: 5000 });
+                    }
                 });
         }
         if (args[0].length > 5)
@@ -33,8 +36,11 @@ module.exports =
             return message.channel.send('The modPrefix may not surpass 5 characters.')
                 .then(msg =>
                 {
-                    message.delete({ timeout: 5000 });
-                    msg.delete({ timeout: 5000 });
+                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                    {
+                        message.delete({ timeout: 5000 });
+                        msg.delete({ timeout: 5000 });
+                    }
                 });
         }
 
@@ -52,8 +58,11 @@ module.exports =
                     return message.channel.send('You can\'t have the same prefix for moderation commands as you have for default commands.')
                         .then(msg =>
                         {
-                            message.delete({ timeout: 5000 });
-                            msg.delete({ timeout: 5000 });
+                            if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                            {
+                                message.delete({ timeout: 5000 });
+                                msg.delete({ timeout: 5000 });
+                            }
                         });
                 }
 
@@ -70,8 +79,11 @@ module.exports =
                         message.channel.send(`Succesfully changed the moderation prefix to \`${args[0]}\``)
                             .then(msg =>
                             {
-                                message.delete({ timeout: 5000 });
-                                msg.delete({ timeout: 5000 });
+                                if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                                {
+                                    message.delete({ timeout: 5000 });
+                                    msg.delete({ timeout: 5000 });
+                                }
                             });
                     });
             });

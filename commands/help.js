@@ -30,8 +30,11 @@ module.exports =
             return message.reply('that\'s not a valid command!')
                 .then(msg =>
                 {
-                    message.delete({ timeout: 5000 });
-                    msg.delete({ timeout: 5000 });
+                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                    {
+                        message.delete({ timeout: 5000 });
+                        msg.delete({ timeout: 5000 });
+                    }
                 });
         }
 

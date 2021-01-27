@@ -10,23 +10,21 @@ module.exports =
     execute(bot, message, args)
     {
         // Check if a member has a specific permission on the guild!
-        if (!message.member.hasPermission('MANAGE_MESSAGES'))
+        if (!message.member.hasPermission('MANAGE_MESSAGES') && !message.member.hasPermission('ADMINISTRATOR'))
         {
             return message.channel.send('You don\'t have the permissions to use this command')
                 .then(msg =>
                 {
-                    message.delete({ timeout: 5000 });
-                    msg.delete({ timeout: 5000 });
+                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                    {
+                        message.delete({ timeout: 5000 });
+                        msg.delete({ timeout: 5000 });
+                    }
                 });
         }
-        else if (message.member.guild.me.hasPermission('MANAGE_MESSAGES'))
+        else if (!message.guild.me.hasPermission('MANAGE_MESSAGES'))
         {
-            return message.channel.send('I don\'t have the permissions to manage messages')
-                .then(msg =>
-                {
-                    message.delete({ timeout: 5000 });
-                    msg.delete({ timeout: 5000 });
-                });
+            return message.channel.send('I don\'t have the permissions to manage messages');
         }
 
         if (!isNaN(args[0]))
@@ -62,13 +60,13 @@ module.exports =
                             })
                             .catch(e =>
                             {
-                                console.err('Error: ' + e);
+                                console.error('Error: ' + e);
                             });
                     });
             }
             catch(err)
             {
-                message.channel.send('No message got deleted')
+                message.channel.send('No message were deleted due to some error')
                     .then(msg =>
                     {
                         now = new Date();

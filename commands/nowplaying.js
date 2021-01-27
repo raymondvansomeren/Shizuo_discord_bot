@@ -13,8 +13,11 @@ module.exports =
             return message.channel.send('I have no songs playing right now')
                 .then(msg =>
                 {
-                    message.delete({ timeout: 5000 });
-                    msg.delete({ timeout: 5000 });
+                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                    {
+                        message.delete({ timeout: 5000 });
+                        msg.delete({ timeout: 5000 });
+                    }
                 });
         }
 

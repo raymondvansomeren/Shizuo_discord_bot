@@ -17,8 +17,11 @@ module.exports =
             return message.channel.send('There are no songs in the queue')
                 .then(msg =>
                 {
-                    message.delete({ timeout: 5000 });
-                    msg.delete({ timeout: 5000 });
+                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                    {
+                        message.delete({ timeout: 5000 });
+                        msg.delete({ timeout: 5000 });
+                    }
                 });
         }
 
@@ -43,8 +46,11 @@ module.exports =
                 return message.channel.send(`I don't have that many queue pages. I only have ${pageAmount} pages`)
                     .then(msg =>
                     {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
+                        if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                        {
+                            message.delete({ timeout: 5000 });
+                            msg.delete({ timeout: 5000 });
+                        }
                     });
             }
         }

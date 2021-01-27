@@ -4,7 +4,7 @@ module.exports =
     description: 'Skips the current song.',
     aliases: ['next'],
     usage: '',
-    cooldown: 3,
+    cooldown: 1,
     async execute(bot, message, args)
     {
         if (message.member.roles.cache.find(role => role.name.toLowerCase() === 'nomusic') || message.member.roles.cache.find(role => role.name.toLowerCase() === 'incapacitated'))
@@ -12,29 +12,38 @@ module.exports =
             return message.channel.send('Seems like you aren\'t allowed to use the music features :confused:')
                 .then(msg =>
                 {
-                    message.delete({ timeout: 5000 });
-                    msg.delete({ timeout: 5000 });
+                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                    {
+                        message.delete({ timeout: 5000 });
+                        msg.delete({ timeout: 5000 });
+                    }
                 });
         }
 
-        const serverQueue = bot.queue.get(message.guild.id);
         if (!message.member.voice.channel)
         {
             return message.channel.send('You have to be in a voice channel to skip music!')
                 .then(msg =>
                 {
-                    message.delete({ timeout: 5000 });
-                    msg.delete({ timeout: 5000 });
+                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                    {
+                        message.delete({ timeout: 5000 });
+                        msg.delete({ timeout: 5000 });
+                    }
                 });
         }
 
+        const serverQueue = bot.queue.get(message.guild.id);
         if (!serverQueue)
         {
             return message.channel.send('There is no song that I could skip!')
                 .then(msg =>
                 {
-                    message.delete({ timeout: 5000 });
-                    msg.delete({ timeout: 5000 });
+                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                    {
+                        message.delete({ timeout: 5000 });
+                        msg.delete({ timeout: 5000 });
+                    }
                 });
         }
 

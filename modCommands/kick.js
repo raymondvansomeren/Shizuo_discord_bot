@@ -12,8 +12,11 @@ module.exports =
             return message.channel.send('You need to mention someone.')
                 .then(msg =>
                 {
-                    message.delete({ timeout: 5000 });
-                    msg.delete({ timeout: 5000 });
+                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                    {
+                        message.delete({ timeout: 5000 });
+                        msg.delete({ timeout: 5000 });
+                    }
                 });
         }
         if (message.member.hasPermission('KICK_MEMBERS'))
@@ -24,8 +27,11 @@ module.exports =
                 return message.channel.send('You can\'t kick yourself.')
                     .then(msg =>
                     {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
+                        if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                        {
+                            message.delete({ timeout: 5000 });
+                            msg.delete({ timeout: 5000 });
+                        }
                     });
             }
             else if (!toKick.kickable)
@@ -33,8 +39,11 @@ module.exports =
                 return message.channel.send(`I can't kick ${toKick}`)
                     .then(msg =>
                     {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
+                        if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                        {
+                            message.delete({ timeout: 5000 });
+                            msg.delete({ timeout: 5000 });
+                        }
                     });
             }
 
@@ -46,8 +55,11 @@ module.exports =
                         message.channel.send(`Succesfully kicked ${toKick}`)
                             .then(msg =>
                             {
-                                message.delete({ timeout: 5000 });
-                                msg.delete({ timeout: 5000 });
+                                if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                                {
+                                    message.delete({ timeout: 5000 });
+                                    msg.delete({ timeout: 5000 });
+                                }
                             });
                     })
                     .catch(e =>
@@ -55,8 +67,11 @@ module.exports =
                         message.channel.send(`Failed to kick ${toKick}. Because ${e}`)
                             .then(msg =>
                             {
-                                message.delete({ timeout: 5000 });
-                                msg.delete({ timeout: 5000 });
+                                if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                                {
+                                    message.delete({ timeout: 5000 });
+                                    msg.delete({ timeout: 5000 });
+                                }
                             });
                     });
             }
@@ -70,8 +85,11 @@ module.exports =
                         message.channel.send(`Succesfully kicked ${toKick} with reason \`${reason}\``)
                             .then(msg =>
                             {
-                                message.delete({ timeout: 5000 });
-                                msg.delete({ timeout: 5000 });
+                                if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                                {
+                                    message.delete({ timeout: 5000 });
+                                    msg.delete({ timeout: 5000 });
+                                }
                             });
                     })
                     .catch(e =>
@@ -79,8 +97,11 @@ module.exports =
                         message.channel.send(`Failed to kick ${toKick}. Because ${e}`)
                             .then(msg =>
                             {
-                                message.delete({ timeout: 5000 });
-                                msg.delete({ timeout: 5000 });
+                                if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                                {
+                                    message.delete({ timeout: 5000 });
+                                    msg.delete({ timeout: 5000 });
+                                }
                             });
                     });
             }
