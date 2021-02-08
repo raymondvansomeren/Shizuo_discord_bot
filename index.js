@@ -278,6 +278,30 @@ bot.on('message', async message =>
     }
 });
 
+bot.on('voiceStateUpdate', (oldState, newState) =>
+{
+    // Update on the bots voiceState?
+    if (oldState.id === bot.user.id)
+    {
+        // Bot joined a channel
+        if (oldState.channelID === null && newState.channelID !== null)
+        {
+            console.log('Joining voice channel in server:', oldState.guild.name);
+        }
+        // Bot moved to another channel
+        else if (oldState.channelID !== null && newState.channelID !== null && newState.channelID !== oldState.channelID)
+        {
+            console.log('Moved from a voice channel in server:', oldState.guild.name);
+        }
+        // Bot leaving/kicked from a channel
+        else if (oldState.channelID !== null && newState.channelID === null)
+        {
+            console.log('Leaving/kicked form a voice channel in server:', oldState.guild.name);
+            bot.queue.delete(newState.guild.id);
+        }
+    }
+});
+
 bot.once('ready', () =>
 {
     connection.query('SELECT Guild, Prefix, ModPrefix FROM guildsettings;',
