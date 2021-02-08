@@ -146,7 +146,7 @@ module.exports =
                 song.title = result.items[0].snippet.title;
                 song.url = `https://www.youtube.com/watch?v=${result.items[0].id.videoId}`;
             }
-            else
+            else if (result.items[1].id.kind === 'youtube#video')
             {
                 song.title = result.items[1].snippet.title;
                 song.url = `https://www.youtube.com/watch?v=${result.items[1].id.videoId}`;
