@@ -1,6 +1,9 @@
 const ytdl = require('ytdl-core');
 const youtube_node = require('youtube-node');
 const youtube = new youtube_node();
+
+const yt = require('youtube.get-video-info');
+
 const { youtubeKey } = require('../config.json');
 
 youtube.setKey(youtubeKey);
@@ -103,6 +106,7 @@ module.exports =
         {
             title: '',
             url: '',
+            duration: Infinity,
         };
         let fullArgs = '';
         for (let i = 0; i < args.length; i++)
@@ -145,11 +149,21 @@ module.exports =
             {
                 song.title = result.items[0].snippet.title;
                 song.url = `https://www.youtube.com/watch?v=${result.items[0].id.videoId}`;
+                yt.retrieve(result.items[0].id.videoId, function(err, res)
+                {
+                    if (err) throw err;
+                    song.duration = JSON.parse(res.player_response).videoDetails.lengthSeconds;
+                });
             }
             else if (result.items[1].id.kind === 'youtube#video')
             {
                 song.title = result.items[1].snippet.title;
                 song.url = `https://www.youtube.com/watch?v=${result.items[1].id.videoId}`;
+                yt.retrieve(result.items[1].id.videoId, function(err, res)
+                {
+                    if (err) throw err;
+                    song.duration = JSON.parse(res.player_response).videoDetails.lengthSeconds;
+                });
             }
 
             if (!serverQueue || serverQueue === undefined || serverQueue === null)

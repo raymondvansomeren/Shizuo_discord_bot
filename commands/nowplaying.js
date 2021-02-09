@@ -1,3 +1,6 @@
+const moment = require('moment');
+const momentDurationFormatSetup = require('moment-duration-format');
+
 module.exports =
 {
     name: 'nowplaying',
@@ -21,6 +24,6 @@ module.exports =
                 });
         }
 
-        message.channel.send(`Currently playing **${serverQueue.songs[0].title}\n(${serverQueue.songs[0].url})**`);
+        message.channel.send(`Currently playing **${serverQueue.songs[0].title}**\nCurrently at **${moment.duration(serverQueue.connection.dispatcher.streamTime, 'milliseconds').format('h:mm:ss').padStart(4, '0:0')}/${moment.duration(serverQueue.songs[0].duration, 'seconds').format('h:mm:ss').padStart(4, '0:0')}**\n(${serverQueue.songs[0].url})`);
     },
 };
