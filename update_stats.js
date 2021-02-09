@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const guilds = 30;
+const guilds = 60;
 
 const topgg = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijc2MTI2MjIxMDIwNjUzMTY0NSIsImJvdCI6dHJ1ZSwiaWF0IjoxNjA4NjYzOTA3fQ._g8aJuV_XCfbkFZoGai4AJMMgD3Zo_b2tZg6LJGXduw';
 axios.post('https://top.gg/api/bots/761262210206531645/stats',
