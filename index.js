@@ -286,16 +286,19 @@ bot.on('voiceStateUpdate', (oldState, newState) =>
         // Bot joined a channel
         if (oldState.channelID === null && newState.channelID !== null)
         {
+            now = new Date();
             console.log(now.toUTCString(), 'Joining voice channel in server:', oldState.guild.name);
         }
         // Bot moved to another channel
         else if (oldState.channelID !== null && newState.channelID !== null && newState.channelID !== oldState.channelID)
         {
+            now = new Date();
             console.log(now.toUTCString(), 'Moved from a voice channel in server:', oldState.guild.name);
         }
         // Bot leaving/kicked from a channel
         else if (oldState.channelID !== null && newState.channelID === null)
         {
+            now = new Date();
             console.log(now.toUTCString(), 'Leaving/kicked form a voice channel in server:', oldState.guild.name);
             bot.queue.delete(newState.guild.id);
         }
