@@ -51,6 +51,7 @@ module.exports =
 
             if (!song)
             {
+                message.channel.send('No more songs to play, leaving voice channel');
                 serverQueue.voiceChannel.leave();
                 bot.queue.delete(guild.id);
                 return;
