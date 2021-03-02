@@ -14,7 +14,7 @@ module.exports =
 {
     name: 'play',
     description: 'Plays a song in your current channel (if I ain\'t in a channel yet). If there is already a song playing, add song to the queue',
-    aliases: ['song'],
+    aliases: ['song', 'p', 'addsong'],
     usage: '[song url] / [search text]',
     cooldown: 3,
     async execute(bot, message, args)
