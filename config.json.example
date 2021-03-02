@@ -9,6 +9,7 @@
     "dbpassword": "",
     "db": "",
     "invitelink": "",
+    "discord": "",
     "vote": [
         {
             "name": "sitename one",
