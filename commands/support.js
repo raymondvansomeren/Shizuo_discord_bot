@@ -7,6 +7,6 @@ module.exports =
     cooldown: 3,
     execute(bot, message, args)
     {
-        message.channel.send('Here is the link to the support server: ' + require('config.json').discord);
+        message.channel.send('Here is the link to the support server: ' + require('./config.json').discord);
     },
 };
