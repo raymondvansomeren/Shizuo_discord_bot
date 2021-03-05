@@ -14,6 +14,8 @@ module.exports =
             .setThumbnail(bicon)
             .addField('Bot Name', bot.user.username)
             .addField('Created On', bot.user.createdAt)
+            .addField('Server amount', bot.guilds.cache.size)
+            .addField('Users', bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0))
             .setFooter('Bot created by raymond570#2966', 'https://cdn.discordapp.com/avatars/270871921137025024/a_fd2fefc0474534a4e2ff908af79be9d1.gif');
 
         // message.delete().catch(e=>{

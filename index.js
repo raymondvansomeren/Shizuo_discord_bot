@@ -158,30 +158,31 @@ function updateSites()
         });
 }
 
-bot.on('guildMemberAdd', async () =>
-{
-    bot.user.setPresence({
-        status: 'online',
-        activity: {
-            name: `over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`,
-            // PLAYING: WATCHING: LISTENING: STREAMING:
-            type: 'WATCHING',
-        },
-    });
-    console.log(`WATCHING over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`);
-});
-bot.on('guildMemberRemove', async () =>
-{
-    bot.user.setPresence({
-        status: 'online',
-        activity: {
-            name: `over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`,
-            // PLAYING: WATCHING: LISTENING: STREAMING:
-            type: 'WATCHING',
-        },
-    });
-    console.log(`WATCHING over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`);
-});
+// // TODO NEEDS SERVER MEMBER INTENT
+// bot.on('guildMemberAdd', async member =>
+// {
+//     bot.user.setPresence({
+//         status: 'online',
+//         activity: {
+//             name: `over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`,
+//             // PLAYING: WATCHING: LISTENING: STREAMING:
+//             type: 'WATCHING',
+//         },
+//     });
+//     console.log(`WATCHING over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`);
+// });
+// bot.on('guildMemberRemove', async member =>
+// {
+//     bot.user.setPresence({
+//         status: 'online',
+//         activity: {
+//             name: `over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`,
+//             // PLAYING: WATCHING: LISTENING: STREAMING:
+//             type: 'WATCHING',
+//         },
+//     });
+//     console.log(`WATCHING over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`);
+// });
 
 bot.on('guildCreate', async guild =>
 {
@@ -192,7 +193,7 @@ bot.on('guildCreate', async guild =>
     bot.user.setPresence({
         status: 'online',
         activity: {
-            name: `over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`,
+            name: `over ${bot.guilds.cache.size} servers`,
             // PLAYING: WATCHING: LISTENING: STREAMING:
             type: 'WATCHING',
         },
@@ -204,7 +205,7 @@ bot.on('guildCreate', async guild =>
             if (error)
             {
                 now = new Date();
-                return console.error(now.toUTCString(), ': line: 111. file: index.js =>\n', error);
+                return console.error(now.toUTCString(), ': line: 208. file: index.js =>\n', error);
             }
 
             // TODO change to use INSERT ON EXIST
@@ -246,7 +247,7 @@ bot.on('guildDelete', async guild =>
     bot.user.setPresence({
         status: 'online',
         activity: {
-            name: `over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`,
+            name: `over ${bot.guilds.cache.size} servers`,
             // PLAYING: WATCHING: LISTENING: STREAMING:
             type: 'WATCHING',
         },
@@ -402,7 +403,7 @@ bot.once('ready', () =>
     bot.user.setPresence({
         status: 'online',
         activity: {
-            name: `over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`,
+            name: `over ${bot.guilds.cache.size} servers`,
             // PLAYING: WATCHING: LISTENING: STREAMING:
             type: 'WATCHING',
         },
