@@ -168,6 +168,7 @@ bot.on('guildMemberAdd', function()
             type: 'WATCHING',
         },
     });
+    console.log(`WATCHING over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`);
 });
 bot.on('guildMemberRemove', function()
 {
@@ -179,6 +180,7 @@ bot.on('guildMemberRemove', function()
             type: 'WATCHING',
         },
     });
+    console.log(`WATCHING over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`);
 });
 
 bot.on('guildCreate', async guild =>
