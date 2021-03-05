@@ -158,6 +158,29 @@ function updateSites()
         });
 }
 
+bot.on('guildMemberAdd', function()
+{
+    bot.user.setPresence({
+        status: 'online',
+        activity: {
+            name: `over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`,
+            // PLAYING: WATCHING: LISTENING: STREAMING:
+            type: 'WATCHING',
+        },
+    });
+});
+bot.on('guildMemberRemove', function()
+{
+    bot.user.setPresence({
+        status: 'online',
+        activity: {
+            name: `over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`,
+            // PLAYING: WATCHING: LISTENING: STREAMING:
+            type: 'WATCHING',
+        },
+    });
+});
+
 bot.on('guildCreate', async guild =>
 {
     updateSites();
@@ -167,7 +190,7 @@ bot.on('guildCreate', async guild =>
     bot.user.setPresence({
         status: 'online',
         activity: {
-            name: `over ${bot.guilds.cache.size} servers`,
+            name: `over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`,
             // PLAYING: WATCHING: LISTENING: STREAMING:
             type: 'WATCHING',
         },
@@ -221,7 +244,7 @@ bot.on('guildDelete', async guild =>
     bot.user.setPresence({
         status: 'online',
         activity: {
-            name: `over ${bot.guilds.cache.size} servers`,
+            name: `over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`,
             // PLAYING: WATCHING: LISTENING: STREAMING:
             type: 'WATCHING',
         },
@@ -377,7 +400,7 @@ bot.once('ready', () =>
     bot.user.setPresence({
         status: 'online',
         activity: {
-            name: `over ${bot.guilds.cache.size} servers`,
+            name: `over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`,
             // PLAYING: WATCHING: LISTENING: STREAMING:
             type: 'WATCHING',
         },
