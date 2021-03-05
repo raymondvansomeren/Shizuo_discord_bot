@@ -160,26 +160,26 @@ function updateSites()
 
 bot.on('guildMemberAdd', function()
 {
-    bot.user.setPresence({
-        status: 'online',
-        activity: {
-            name: `over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`,
-            // PLAYING: WATCHING: LISTENING: STREAMING:
-            type: 'WATCHING',
-        },
-    });
+    // bot.user.setPresence({
+    //     status: 'online',
+    //     activity: {
+    //         name: `over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`,
+    //         // PLAYING: WATCHING: LISTENING: STREAMING:
+    //         type: 'WATCHING',
+    //     },
+    // });
     console.log(`WATCHING over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`);
 });
 bot.on('guildMemberRemove', function()
 {
-    bot.user.setPresence({
-        status: 'online',
-        activity: {
-            name: `over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`,
-            // PLAYING: WATCHING: LISTENING: STREAMING:
-            type: 'WATCHING',
-        },
-    });
+    // bot.user.setPresence({
+    //     status: 'online',
+    //     activity: {
+    //         name: `over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`,
+    //         // PLAYING: WATCHING: LISTENING: STREAMING:
+    //         type: 'WATCHING',
+    //     },
+    // });
     console.log(`WATCHING over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`);
 });
 
