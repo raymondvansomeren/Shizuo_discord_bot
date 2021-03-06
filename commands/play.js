@@ -19,6 +19,7 @@ module.exports =
     cooldown: 3,
     async execute(bot, message, args)
     {
+        console.log('test1');
         if (message.member.roles.cache.find(role => role.name.toLowerCase() === 'nomusic') || message.member.roles.cache.find(role => role.name.toLowerCase() === 'incapacitated'))
         {
             return message.channel.send('Seems like you aren\'t allowed to use the music features :confused:')
@@ -31,6 +32,7 @@ module.exports =
                     }
                 });
         }
+        console.log('test2');
 
         if (args.length === 0)
         {
@@ -44,6 +46,7 @@ module.exports =
                     }
                 });
         }
+        console.log('test3');
 
         function play(guild, song)
         {
@@ -56,12 +59,14 @@ module.exports =
                 bot.queue.delete(guild.id);
                 return;
             }
+            console.log('test4');
             const dispatcher = serverQueue.connection
                 .play(ytdl(song.url, { highWaterMark: 1 << 25, quality: 'highestaudio' }), { highWaterMark: 25, plp: 5 })
                 .on('finish', () =>
                 {
                     serverQueue.songs.shift();
                     play(guild, serverQueue.songs[0]);
+                    console.log('test');
                 })
                 .on('error', (error) =>
                 {
@@ -70,8 +75,11 @@ module.exports =
                 });
 
             dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
+            console.log('test12');
             serverQueue.textChannel.send(`Now playing: **${song.title}**\n(${song.url})`);
+            console.log('test13');
         }
+        console.log('test5');
 
         const serverQueue = bot.queue.get(message.guild.id);
         const voiceChannel = message.member.voice.channel;
@@ -87,6 +95,7 @@ module.exports =
                     }
                 });
         }
+        console.log('test6');
 
         const permissions = voiceChannel.permissionsFor(message.client.user);
         if (!permissions.has('CONNECT') || !permissions.has('SPEAK'))
@@ -101,6 +110,7 @@ module.exports =
                     }
                 });
         }
+        console.log('test7');
 
 
         const song =
@@ -189,8 +199,10 @@ module.exports =
                     // Here we try to join the voicechat and save our connection into our object.
                     const connection = await voiceChannel.join();
                     queueContruct.connection = connection;
+                    console.log('test10');
                     // Calling the play function to start a song
                     play(message.guild, queueContruct.songs[0]);
+                    console.log('test11');
                 }
                 catch (err)
                 {
@@ -198,6 +210,7 @@ module.exports =
                     now = new Date();
                     console.error(now.toUTCString(), ':', err);
                     bot.queue.delete(message.guild.id);
+                    console.log('test9');
                     return message.channel.send(err)
                         .then(msg =>
                         {
@@ -215,5 +228,6 @@ module.exports =
                 return message.channel.send(`**${song.title}** has been added to the queue!\n(${song.url})`);
             }
         });
+        console.log('test8');
     },
 };

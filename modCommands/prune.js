@@ -61,6 +61,7 @@ module.exports =
                             .catch(e =>
                             {
                                 console.error('Error: ' + e);
+                                console.log('test prune');
                             });
                     });
             }
