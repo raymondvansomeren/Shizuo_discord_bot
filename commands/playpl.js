@@ -101,7 +101,6 @@ module.exports =
         try
         {
             playlist = await ytpl(args[0], { limit: Infinity });
-            console.log(playlist);
         }
         catch (e)
         {
