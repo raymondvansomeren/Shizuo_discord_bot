@@ -166,18 +166,18 @@ module.exports =
                     song.duration = JSON.parse(res.player_response).videoDetails.lengthSeconds;
                 });
             }
-	    else
-	    {
+            else
+            {
                 return message.channel.send(`Could not find ${fullArgs}`)
                     .then(msg =>
                     {
                         if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
                         {
-                            message.delete({ timeout: 5000 }); 
-                            msg.delete({ timeout: 5000 }); 
+                            message.delete({ timeout: 5000 });
+                            msg.delete({ timeout: 5000 });
                         }
                     });
-	    }
+            }
 
             if (!serverQueue || serverQueue === undefined || serverQueue === null)
             {
