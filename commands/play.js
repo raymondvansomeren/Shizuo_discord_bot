@@ -1,12 +1,7 @@
 const ytdl = require('ytdl-core');
-const youtube_node = require('youtube-node');
-const youtube = new youtube_node();
+const ytsr = require('ytsr');
 
 const yt = require('youtube.get-video-info');
-
-const { youtubeKey } = require('../config.json');
-
-youtube.setKey(youtubeKey);
 
 let now = new Date();
 
@@ -116,116 +111,90 @@ module.exports =
                 fullArgs += ' ';
             fullArgs += `${args[i]}`;
         }
-        // let songInfo = undefined;
-        youtube.search(fullArgs, 2, async function(error, result)
+
+        const filters = await ytsr.getFilters(fullArgs);
+        const filterVideo = filters.get('Type').get('Video');
+        if (filterVideo.url === undefined || filterVideo.url === null)
         {
-            if (error)
-            {
-                now = new Date();
-                return console.error(now.toUTCString(), ':', error);
-            }
-
-            // for (let i = 0;;i++)
-            // {
-            //     if (result.items[1].id.kind === 'youtube#video')
-            //     {
-            //         song.title = result.items[0].snippet.title;
-            //         song.url = `https://www.youtube.com/watch?v=${result.items[0].id.videoId}`;
-            //         break;
-            //     }
-            // }
-            if (result.items[0] === undefined)
-            {
-                return message.channel.send(`Could not find ${fullArgs}`)
-                    .then(msg =>
+            return message.channel.send(`Could not find ${fullArgs}`)
+                .then(msg =>
+                {
+                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
                     {
-                        if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                        {
-                            message.delete({ timeout: 5000 });
-                            msg.delete({ timeout: 5000 });
-                        }
-                    });
-            }
-            if (result.items[0] !== undefined && result.items[0].id.kind === 'youtube#video')
-            {
-                song.title = result.items[0].snippet.title;
-                song.url = `https://www.youtube.com/watch?v=${result.items[0].id.videoId}`;
-                yt.retrieve(result.items[0].id.videoId, function(err, res)
-                {
-                    if (err) throw err;
-                    song.duration = JSON.parse(res.player_response).videoDetails.lengthSeconds;
+                        message.delete({ timeout: 5000 });
+                        msg.delete({ timeout: 5000 });
+                    }
                 });
-            }
-            else if (result.items[1] !== undefined && result.items[1].id.kind === 'youtube#video')
-            {
-                song.title = result.items[1].snippet.title;
-                song.url = `https://www.youtube.com/watch?v=${result.items[1].id.videoId}`;
-                yt.retrieve(result.items[1].id.videoId, function(err, res)
+        }
+        const results = await ytsr(filterVideo.url, { pages: 1 });
+
+        if (results.items.length === 0 || results.items === undefined || results === undefined)
+        {
+            return message.channel.send(`Could not find ${fullArgs}`)
+                .then(msg =>
                 {
-                    if (err) throw err;
-                    song.duration = JSON.parse(res.player_response).videoDetails.lengthSeconds;
-                });
-            }
-            else
-            {
-                return message.channel.send(`Could not find ${fullArgs}`)
-                    .then(msg =>
+                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
                     {
-                        if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                        {
-                            message.delete({ timeout: 5000 });
-                            msg.delete({ timeout: 5000 });
-                        }
-                    });
-            }
+                        message.delete({ timeout: 5000 });
+                        msg.delete({ timeout: 5000 });
+                    }
+                });
+        }
 
-            if (!serverQueue || serverQueue === undefined || serverQueue === null)
-            {
-                // Creating the contract for our queue
-                const queueContruct =
-                {
-                    textChannel: message.channel,
-                    voiceChannel: voiceChannel,
-                    connection: null,
-                    songs: [],
-                    volume: 5,
-                    playing: true,
-                };
-                // Setting the queue using our contract
-                bot.queue.set(message.guild.id, queueContruct);
-                // Pushing the song to our songs array
-                queueContruct.songs.push(song);
-
-                try
-                {
-                    // Here we try to join the voicechat and save our connection into our object.
-                    const connection = await voiceChannel.join();
-                    queueContruct.connection = connection;
-                    // Calling the play function to start a song
-                    play(message.guild, queueContruct.songs[0]);
-                }
-                catch (err)
-                {
-                    // Printing the error message if the bot fails to join the voicechat
-                    now = new Date();
-                    console.error(now.toUTCString(), ':', err);
-                    bot.queue.delete(message.guild.id);
-                    return message.channel.send(err)
-                        .then(msg =>
-                        {
-                            if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                            {
-                                message.delete({ timeout: 5000 });
-                                msg.delete({ timeout: 5000 });
-                            }
-                        });
-                }
-            }
-            else
-            {
-                serverQueue.songs.push(song);
-                return message.channel.send(`**${song.title}** has been added to the queue!\n(${song.url})`);
-            }
+        song.title = results.items[0].title;
+        song.url = `https://www.youtube.com/watch?v=${results.items[0].id}`;
+        yt.retrieve(results.items[0].id, function(err, res)
+        {
+            if (err) throw err;
+            song.duration = JSON.parse(res.player_response).videoDetails.lengthSeconds;
         });
+
+        if (!serverQueue || serverQueue === undefined || serverQueue === null)
+        {
+            // Creating the contract for our queue
+            const queueContruct =
+            {
+                textChannel: message.channel,
+                voiceChannel: voiceChannel,
+                connection: null,
+                songs: [],
+                volume: 5,
+                playing: true,
+            };
+            // Setting the queue using our contract
+            bot.queue.set(message.guild.id, queueContruct);
+            // Pushing the song to our songs array
+            queueContruct.songs.push(song);
+
+            try
+            {
+                // Here we try to join the voicechat and save our connection into our object.
+                const connection = await voiceChannel.join();
+                queueContruct.connection = connection;
+                // Calling the play function to start a song
+                play(message.guild, queueContruct.songs[0]);
+            }
+            catch (err)
+            {
+                // Printing the error message if the bot fails to join the voicechat
+                now = new Date();
+                console.error(now.toUTCString(), ':', err);
+                bot.queue.delete(message.guild.id);
+                return message.channel.send(err)
+                    .then(msg =>
+                    {
+                        if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                        {
+                            message.delete({ timeout: 5000 });
+                            msg.delete({ timeout: 5000 });
+                        }
+                    });
+            }
+        }
+        else
+        {
+            serverQueue.songs.push(song);
+            return message.channel.send(`**${song.title}** has been added to the queue!\n(${song.url})`);
+        }
     },
 };
