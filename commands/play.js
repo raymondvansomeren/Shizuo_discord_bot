@@ -146,7 +146,7 @@ module.exports =
                         }
                     });
             }
-            if (result.items[0].id.kind === 'youtube#video')
+            if (result.items[0] !== undefined && result.items[0].id.kind === 'youtube#video')
             {
                 song.title = result.items[0].snippet.title;
                 song.url = `https://www.youtube.com/watch?v=${result.items[0].id.videoId}`;
@@ -156,7 +156,7 @@ module.exports =
                     song.duration = JSON.parse(res.player_response).videoDetails.lengthSeconds;
                 });
             }
-            else if (result.items[1].id.kind === 'youtube#video')
+            else if (result.items[1] !== undefined && result.items[1].id.kind === 'youtube#video')
             {
                 song.title = result.items[1].snippet.title;
                 song.url = `https://www.youtube.com/watch?v=${result.items[1].id.videoId}`;
@@ -166,6 +166,18 @@ module.exports =
                     song.duration = JSON.parse(res.player_response).videoDetails.lengthSeconds;
                 });
             }
+	    else
+	    {
+                return message.channel.send(`Could not find ${fullArgs}`)
+                    .then(msg =>
+                    {
+                        if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                        {
+                            message.delete({ timeout: 5000 }); 
+                            msg.delete({ timeout: 5000 }); 
+                        }
+                    });
+	    }
 
             if (!serverQueue || serverQueue === undefined || serverQueue === null)
             {
