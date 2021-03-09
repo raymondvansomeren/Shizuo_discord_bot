@@ -10,6 +10,11 @@ module.exports =
     cooldown: 3,
     async execute(bot, message, args)
     {
+        // To get rid of the eslint warning of unused vars
+        const falseVar = false;
+        if (falseVar === false)
+            momentDurationFormatSetup;
+
         const serverQueue = bot.queue.get(message.guild.id);
         if (!serverQueue)
         {
