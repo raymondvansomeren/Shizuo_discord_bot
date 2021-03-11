@@ -21,15 +21,21 @@ module.exports =
         }
 
         const serverQueueSongs = bot.queue.get(message.guild.id).songs;
+        // console.log(serverQueueSongs);
+        // console.log('------------');
         // Skip the first song (current song)
-        for (let i = 1; i < serverQueueSongs.length; i++)
+        // const startIndex = 1;
+        const temp = serverQueueSongs.shift();
+        for (let i = 0; i < serverQueueSongs.length; i++)
         {
-            const randomIndex = Math.floor(Math.random() * i);
+            const randomIndex = Math.floor(Math.random() * serverQueueSongs.length);
 
             const temporaryValue = serverQueueSongs[i];
             serverQueueSongs[i] = serverQueueSongs[randomIndex];
             serverQueueSongs[randomIndex] = temporaryValue;
         }
+        // console.log(serverQueueSongs);
+        serverQueueSongs.unshift(temp);
         bot.queue.get(message.guild.id).songs = serverQueueSongs;
 
         return message.channel.send('Shuffled the queue');
