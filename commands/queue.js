@@ -1,5 +1,5 @@
-// const { DiscordAPIError } = require('discord.js');
-// const ytdl = require('ytdl-core');
+const moment = require('moment');
+const momentDurationFormatSetup = require('moment-duration-format');
 const Discord = require('discord.js');
 
 module.exports =
@@ -11,6 +11,11 @@ module.exports =
     cooldown: 3,
     async execute(bot, message, args)
     {
+        // To get rid of the eslint warning of unused vars
+        const falseVar = false;
+        if (falseVar === false)
+            momentDurationFormatSetup;
+
         const serverQueue = bot.queue.get(message.guild.id);
         if (!serverQueue || serverQueue.songs.length === 1)
         {
@@ -29,6 +34,12 @@ module.exports =
         embeddedQueue.setThumbnail(bot.user.avatarURL());
         embeddedQueue.setColor('#DE8422');
         embeddedQueue.setTitle('Music queue');
+
+        let queueTime = 0;
+        for (let i = 1; i < serverQueue.songs.length; i++)
+            queueTime += Number(serverQueue.songs[i].duration);
+
+        embeddedQueue.setDescription(`Total queue time: ${moment.duration(queueTime, 'seconds').format('h:mm:ss').padStart(4, '0:0')}`);
 
         let page = undefined;
         const songsPerPage = 10;
