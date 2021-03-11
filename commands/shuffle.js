@@ -21,7 +21,8 @@ module.exports =
         }
 
         const serverQueueSongs = bot.queue.get(message.guild.id).songs;
-        for (let i = 0; i < serverQueueSongs.length; i++)
+        // Skip the first song (current song)
+        for (let i = 1; i < serverQueueSongs.length; i++)
         {
             const randomIndex = Math.floor(Math.random() * i);
 
