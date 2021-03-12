@@ -96,9 +96,7 @@ module.exports =
         }
 
         const permissions = voiceChannel.permissionsFor(message.guild.me);
-        console.log(permissions);
-        console.log(message.guild.me);
-        if (!permissions.has('CONNECT') || !permissions.has('SPEAK'))
+        if (!permissions.has('VIEW_CHANNEL') || !permissions.has('CONNECT') || !permissions.has('SPEAK'))
         {
             return message.channel.send('I need the permissions to join and speak in your voice channel!')
                 .then(msg =>
