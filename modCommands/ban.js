@@ -3,7 +3,6 @@ module.exports =
     name: 'ban',
     description: 'Ban a user. Reason is optional.',
     usage: '[mention] [reason]',
-    cooldown: 3,
     execute(bot, message, args)
     {
         if (args.length === 0)

@@ -11,7 +11,6 @@ module.exports =
     description: 'Plays a playlist, takes a playlist id (the part in the link after "list=") or just the playlist name (but with a high chance that it won\'t work)',
     aliases: ['playlist', 'playplaylist'],
     usage: '[song url] / [search text]',
-    cooldown: 3,
     async execute(bot, message, args)
     {
         if (message.member.roles.cache.find(role => role.name.toLowerCase() === 'nomusic') || message.member.roles.cache.find(role => role.name.toLowerCase() === 'incapacitated'))
@@ -106,9 +105,15 @@ module.exports =
         catch (e)
         {
             now = new Date();
-            console.log(now.toUTCString(), e);
-            return message.channel.send('Could not find');
+            console.log(now.toUTCString(), ' :', e);
+            if (e.statusCode >= 400)
+                return message.channel.send(`Some error happened, status code ${e.statusCode}`);
+
+            return message.channel.send('Some error happened');
         }
+
+        if (playlist === undefined || playlist === null)
+            return message.channel.send('Could not find');
 
         for (let i = 0; i < playlist.estimatedItemCount; i++)
         {

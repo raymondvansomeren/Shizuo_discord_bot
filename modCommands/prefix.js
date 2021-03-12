@@ -15,7 +15,6 @@ module.exports =
     name: 'prefix',
     description: 'Used to change the prefix for the default commands. The prefix may not be any longer than 5 characters.',
     usage: '[prefix]',
-    cooldown: 3,
     execute(bot, message, args)
     {
         if (!message.member.hasPermission('MANAGE_GUILD'))

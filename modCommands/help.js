@@ -6,7 +6,6 @@ module.exports =
     description: 'List all of my moderation commands or info about a specific command.',
     aliases: ['commands'],
     usage: '[command name]',
-    cooldown: 3,
     execute(bot, message, args)
     {
         const data = [];
@@ -40,7 +39,7 @@ module.exports =
         if (command.usage)
             data.push(`**Usage:** ${bot.modPrefixes.get(message.guild.id)}${command.name} ${command.usage}`);
 
-        data.push(`**Cooldown:** ${command.cooldown || 3} second(s)`);
+        data.push(`**Cooldown:** ${command.cooldown || 1} second(s)`);
 
         message.channel.send(data, { split: true });
     },

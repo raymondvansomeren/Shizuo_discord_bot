@@ -4,7 +4,6 @@ module.exports =
     description: 'Resumes the song.',
     aliases: [''],
     usage: '',
-    cooldown: 3,
     async execute(bot, message, args)
     {
         if (message.member.roles.cache.find(role => role.name.toLowerCase() === 'nomusic') || message.member.roles.cache.find(role => role.name.toLowerCase() === 'incapacitated'))

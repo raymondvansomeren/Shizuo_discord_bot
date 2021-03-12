@@ -1,6 +1,5 @@
 module.exports = {
     name: 'ping',
-    cooldown: 5,
     execute(bot, message, args)
     {
         // Calculates ping between sending a message and editing it, giving a nice round-trip latency.

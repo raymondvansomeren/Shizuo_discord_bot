@@ -6,7 +6,6 @@ module.exports =
     description: 'Deleted up to 100 message that are no older than 2 weeks.',
     aliases: ['delete'],
     usage: '[number of messages to delete]',
-    cooldown: 0,
     execute(bot, message, args)
     {
         // Check if a member has a specific permission on the guild!

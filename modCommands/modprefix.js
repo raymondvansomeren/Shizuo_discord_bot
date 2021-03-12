@@ -16,7 +16,6 @@ module.exports =
     description: 'Used to change the prefix for the moderation commands.',
     aliases: ['mprefix'],
     usage: '[prefix]',
-    cooldown: 3,
     execute(bot, message, args)
     {
         if (!message.member.hasPermission('MANAGE_GUILD'))

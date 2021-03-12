@@ -4,7 +4,6 @@ module.exports =
     description: 'Kick a user from a voice channel. Reason is optional.',
     aliases: ['kv', 'disconnect'],
     usage: '[mention] [reason]',
-    cooldown: 3,
     execute(bot, message, args)
     {
         if (args.length === 0)

@@ -7,7 +7,6 @@ module.exports =
     description: 'Shows the currently playing song',
     aliases: ['playing', 'currentsong', 'np', 'cs'],
     usage: '',
-    cooldown: 3,
     async execute(bot, message, args)
     {
         // To get rid of the eslint warning of unused vars

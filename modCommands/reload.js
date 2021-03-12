@@ -4,7 +4,6 @@ module.exports =
 {
     name: 'reload',
     description: 'Reloads a command',
-    cooldown: 0.1,
     usage: '[command]',
     execute(bot, message, args)
     {

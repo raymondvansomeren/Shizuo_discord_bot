@@ -8,7 +8,6 @@ module.exports =
     description: 'Shows the current queue',
     aliases: ['q', 'songs'],
     usage: '[page (not required)]',
-    cooldown: 3,
     async execute(bot, message, args)
     {
         // To get rid of the eslint warning of unused vars

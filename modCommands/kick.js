@@ -4,7 +4,6 @@ module.exports =
     alias: ['yeet', 'fuckoff'],
     description: 'Kicks a user from the server. A reason is optional.',
     usage: '[user] [reason]',
-    cooldown: 5,
     execute(bot, message, args)
     {
         if (args.length === 0)

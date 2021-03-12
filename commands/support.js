@@ -4,7 +4,6 @@ module.exports =
     description: 'Bot support server on discord.',
     aliases: ['discord'],
     usage: '',
-    cooldown: 3,
     execute(bot, message, args)
     {
         // Send a message containing the invite link to the discord server

@@ -6,7 +6,6 @@ module.exports =
     description: 'This command will return the invite link for the bot.',
     aliases: ['invite', 'botinvite', 'link'],
     usage: '',
-    cooldown: 3,
     execute(bot, message, args)
     {
         message.channel.send(`Here is my link: ${invitelink}`);
