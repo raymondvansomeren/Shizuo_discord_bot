@@ -94,7 +94,7 @@ module.exports =
                 });
         }
 
-        const permissions = voiceChannel.permissionsFor(message.client.user);
+        const permissions = voiceChannel.permissionsFor(message.guild.member.me);
         if (!permissions.has('CONNECT') || !permissions.has('SPEAK'))
         {
             return message.channel.send('I need the permissions to join and speak in your voice channel!')
