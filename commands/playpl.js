@@ -3,6 +3,10 @@ const ytpl = require('ytpl');
 
 const yt = require('youtube.get-video-info');
 
+const cookiefile = require('cookiefile');
+const cookiemap = new cookiefile.CookieMap('./cookies.txt');
+const cookies = cookiemap.toRequestHeader().replace ('Cookie: ', '');
+
 let now = new Date();
 
 module.exports =
@@ -51,7 +55,16 @@ module.exports =
                 return;
             }
             const dispatcher = serverQueue.connection
-                .play(ytdl(song.url, { highWaterMark: 1 << 25, quality: 'highestaudio' }), { highWaterMark: 25, plp: 5 })
+                .play(ytdl(song.url,
+                    {
+                        highWaterMark: 1 << 25, quality: 'highestaudio', requestOptions:
+                        {
+                            headers:
+                            {
+                                Cookie: cookies,
+                            },
+                        },
+                    }), { highWaterMark: 25, plp: 5 })
                 .on('finish', () =>
                 {
                     serverQueue.songs.shift();
