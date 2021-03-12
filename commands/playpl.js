@@ -97,6 +97,7 @@ module.exports =
         }
 
         let added = 0;
+        let notAdded = 0;
         let playlist = undefined;
         try
         {
@@ -104,7 +105,9 @@ module.exports =
         }
         catch (e)
         {
-            message.channel.send('Could not find ');
+            now = new Date();
+            console.log(now.toUTCString(), e);
+            return message.channel.send('Could not find');
         }
 
         for (let i = 0; i < playlist.estimatedItemCount; i++)
@@ -117,64 +120,74 @@ module.exports =
                 duration: Infinity,
             };
 
-            song.title = playlist.items[i].title;
-            song.url = `https://www.youtube.com/watch?v=${playlist.items[i].id}`;
-            yt.retrieve(playlist.items[i].id, function(err, res)
+            if (playlist.items[i] !== undefined && playlist.items[i] !== null)
             {
-                if (err) throw err;
-                song.duration = JSON.parse(res.player_response).videoDetails.lengthSeconds;
-            });
+                song.title = playlist.items[i].title;
+                song.url = `https://www.youtube.com/watch?v=${playlist.items[i].id}`;
+                yt.retrieve(playlist.items[i].id, function(err, res)
+                {
+                    if (err) throw err;
+                    song.duration = JSON.parse(res.player_response).videoDetails.lengthSeconds;
+                });
 
-            if (!serverQueue || serverQueue === undefined || serverQueue === null)
-            {
-                // Creating the contract for our queue
-                const queueContruct =
+                if (!serverQueue || serverQueue === undefined || serverQueue === null)
                 {
-                    textChannel: message.channel,
-                    voiceChannel: voiceChannel,
-                    connection: null,
-                    songs: [],
-                    volume: 5,
-                    playing: true,
-                };
-                // Setting the queue using our contract
-                bot.queue.set(message.guild.id, queueContruct);
-                // Pushing the song to our songs array
-                queueContruct.songs.push(song);
-                // added++;
+                    // Creating the contract for our queue
+                    const queueContruct =
+                    {
+                        textChannel: message.channel,
+                        voiceChannel: voiceChannel,
+                        connection: null,
+                        songs: [],
+                        volume: 5,
+                        playing: true,
+                    };
+                    // Setting the queue using our contract
+                    bot.queue.set(message.guild.id, queueContruct);
+                    // Pushing the song to our songs array
+                    queueContruct.songs.push(song);
+                    // added++;
 
-                try
-                {
-                    // Here we try to join the voicechat and save our connection into our object.
-                    const connection = await voiceChannel.join();
-                    queueContruct.connection = connection;
-                    // Calling the play function to start a song
-                    play(message.guild, queueContruct.songs[0]);
-                    added++;
-                }
-                catch (err)
-                {
-                    // Printing the error message if the bot fails to join the voicechat
-                    now = new Date();
-                    console.error(now.toUTCString(), ':', err);
-                    bot.queue.delete(message.guild.id);
-                    return message.channel.send(err)
-                        .then(msg =>
-                        {
-                            if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                    try
+                    {
+                        // Here we try to join the voicechat and save our connection into our object.
+                        const connection = await voiceChannel.join();
+                        queueContruct.connection = connection;
+                        // Calling the play function to start a song
+                        play(message.guild, queueContruct.songs[0]);
+                        added++;
+                    }
+                    catch (err)
+                    {
+                        // Printing the error message if the bot fails to join the voicechat
+                        now = new Date();
+                        console.error(now.toUTCString(), ':', err);
+                        bot.queue.delete(message.guild.id);
+                        return message.channel.send(err)
+                            .then(msg =>
                             {
-                                message.delete({ timeout: 5000 });
-                                msg.delete({ timeout: 5000 });
-                            }
-                        });
+                                if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                                {
+                                    message.delete({ timeout: 5000 });
+                                    msg.delete({ timeout: 5000 });
+                                }
+                            });
+                    }
+                }
+                else
+                {
+                    serverQueue.songs.push(song);
+                    added++;
                 }
             }
             else
             {
-                serverQueue.songs.push(song);
-                added++;
+                notAdded++;
             }
         }
-        return message.channel.send(`Added ${added} songs.`);
+        if (notAdded === 0)
+            return message.channel.send(`Added ${added} songs.`);
+        else
+            return message.channel.send(`Added ${added} songs. Not added ${notAdded} songs.`);
     },
 };
