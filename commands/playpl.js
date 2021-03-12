@@ -120,7 +120,7 @@ module.exports =
             now = new Date();
             console.log(now.toUTCString(), ' :', e);
             if (e.statusCode >= 400)
-                return message.channel.send(`Some error happened, status code ${e.statusCode}`);
+                return message.channel.send(`Some error happened, status code ${e.statusCode}. Should be fix shortly`);
 
             return message.channel.send('Some error happened');
         }
