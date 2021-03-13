@@ -59,7 +59,7 @@ module.exports =
                         {
                             headers:
                             {
-                                Cookie: `SID=${SID}; HSID=${HSID}; SSID=${SSID}`,
+                                Cookie: `SID=${SID}; HSID=${HSID}; SSID=${SSID};`,
                             },
                         },
                     }), { highWaterMark: 25, plp: 5 })
