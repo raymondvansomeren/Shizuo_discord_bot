@@ -3,9 +3,7 @@ const ytsr = require('ytsr');
 
 const yt = require('youtube.get-video-info');
 
-const cookiefile = require('cookiefile');
-const cookiemap = new cookiefile.CookieMap('./cookies.txt');
-const cookies = cookiemap.toRequestHeader().replace ('Cookie: ', '');
+const { HSID, SSID, SID } = require('../config.json');
 
 let now = new Date();
 
@@ -61,7 +59,7 @@ module.exports =
                         {
                             headers:
                             {
-                                Cookie: cookies,
+                                Cookie: `SID=${SID}; HSID=${HSID}; SSID=${SSID}`,
                             },
                         },
                     }), { highWaterMark: 25, plp: 5 })

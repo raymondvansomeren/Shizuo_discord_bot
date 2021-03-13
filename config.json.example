@@ -19,5 +19,11 @@
             "name": "sitename two",
             "link": "link two"
         }
-    ]
+    ],
+    "youtube-cookies":
+    {
+        "SID": "",
+        "SSID": "",
+        "HSID": ""
+    }
 }
