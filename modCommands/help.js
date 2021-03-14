@@ -16,10 +16,19 @@ module.exports =
             data.push('Here\'s a list of all my commands:');
             for (const cmd of modCommands.map(command => command.name))
             {
-                if (cmd !== 'reload')
+                const commandDisabled = (cmd.disabled || false);
+                if (cmd !== 'reload' || !commandDisabled)
                     data.push(`:white_small_square: **${cmd}**`);
             }
-            data.push(`\nYou can send \`${bot.modPrefixes.get(message.guild.id)}help [command name]\` to get info on a specific command!`);
+            data.push(`\nYou can send \`${bot.modPrefixes.get(message.guild.id)}help [command name]\` to get info on a specific command!`)
+                .then(msg =>
+                {
+                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                    {
+                        message.delete({ timeout: 15000 });
+                        msg.delete({ timeout: 15000 });
+                    }
+                });
 
             return message.channel.send(data, { split: true });
         }
@@ -28,7 +37,17 @@ module.exports =
         const command = modCommands.get(name) || modCommands.find(c => c.aliases && c.aliases.includes(name));
 
         if (!command)
-            return message.reply('that\'s not a valid command!');
+        {
+            return message.reply('that\'s not a valid command!')
+                .then(msg =>
+                {
+                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                    {
+                        message.delete({ timeout: 5000 });
+                        msg.delete({ timeout: 5000 });
+                    }
+                });
+        }
 
         data.push(`**Name:** ${command.name}`);
 
@@ -41,6 +60,14 @@ module.exports =
 
         data.push(`**Cooldown:** ${command.cooldown || 1} second(s)`);
 
-        message.channel.send(data, { split: true });
+        message.channel.send(data, { split: true })
+            .then(msg =>
+            {
+                if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                {
+                    message.delete({ timeout: 15000 });
+                    msg.delete({ timeout: 15000 });
+                }
+            });
     },
 };

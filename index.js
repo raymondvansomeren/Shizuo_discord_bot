@@ -299,6 +299,20 @@ bot.on('message', async message =>
         // timestamps.set(message.author.id, now);
         // setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
 
+        const commandDisabled = (command.disabled || false);
+        if (commandDisabled)
+        {
+            return message.reply(`I am sorry, \`${command.name}\` is currently disabled.`)
+                .then(msg =>
+                {
+                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                    {
+                        message.delete({ timeout: 5000 });
+                        msg.delete({ timeout: 5000 });
+                    }
+                });
+        }
+
         try
         {
             command.execute(bot, message, args);
@@ -307,7 +321,15 @@ bot.on('message', async message =>
         {
             now = new Date();
             console.error(now.toUTCString(), ':', e);
-            message.reply('there was an error trying to execute that command!');
+            message.reply('there was an error trying to execute that command!')
+                .then(msg =>
+                {
+                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                    {
+                        message.delete({ timeout: 10000 });
+                        msg.delete({ timeout: 10000 });
+                    }
+                });
         }
     }
     // Default (everyone) commands
@@ -333,11 +355,33 @@ bot.on('message', async message =>
             if (now < expirationTime)
             {
                 const timeLeft = (expirationTime - now) / 1000;
-                return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
+                return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`)
+                    .then(msg =>
+                    {
+                        if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                        {
+                            message.delete({ timeout: 5000 });
+                            msg.delete({ timeout: 5000 });
+                        }
+                    });
             }
         }
         timestamps.set(message.author.id, now);
         setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+
+        const commandDisabled = (command.disabled || false);
+        if (commandDisabled)
+        {
+            return message.reply(`I am sorry, \`${command.name}\` is currently disabled.`)
+                .then(msg =>
+                {
+                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                    {
+                        message.delete({ timeout: 5000 });
+                        msg.delete({ timeout: 5000 });
+                    }
+                });
+        }
 
         try
         {
@@ -347,7 +391,15 @@ bot.on('message', async message =>
         {
             now = new Date();
             console.error(now.toUTCString(), ':', e);
-            message.reply('there was an error trying to execute that command!');
+            message.reply('there was an error trying to execute that command!')
+                .then(msg =>
+                {
+                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                    {
+                        message.delete({ timeout: 10000 });
+                        msg.delete({ timeout: 10000 });
+                    }
+                });
         }
     }
 });

@@ -13,6 +13,7 @@ module.exports =
     description: 'Plays a playlist, takes a playlist id (the part in the link after "list=") or just the playlist name (but with a high chance that it won\'t work)',
     aliases: ['playlist', 'playplaylist'],
     usage: '[song url] / [search text]',
+    disabled: true,
     async execute(bot, message, args)
     {
         if (message.member.roles.cache.find(role => role.name.toLowerCase() === 'nomusic') || message.member.roles.cache.find(role => role.name.toLowerCase() === 'incapacitated'))

@@ -14,11 +14,23 @@ module.exports =
         if (!args.length)
         {
             data.push('Here\'s a list of all my commands:');
-            for (const cmd of commands.map(command => command.name))
-                data.push(`:white_small_square: **${cmd}**`);
+            for (const cmd of commands.map(command => command))
+            {
+                const commandDisabled = (cmd.disabled || false);
+                if (!commandDisabled)
+                    data.push(`:white_small_square: **${cmd.name}**`);
+            }
             data.push(`\nYou can send \`${bot.prefixes.get(message.guild.id)}help [command name]\` to get info on a specific command!`);
 
-            return message.channel.send(data, { split: true });
+            return message.channel.send(data, { split: true })
+                .then(msg =>
+                {
+                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                    {
+                        message.delete({ timeout: 15000 });
+                        msg.delete({ timeout: 15000 });
+                    }
+                });
         }
 
         const name = args[0].toLowerCase();
@@ -48,6 +60,14 @@ module.exports =
 
         data.push(`**Cooldown:** ${command.cooldown || 1} second(s)`);
 
-        message.channel.send(data, { split: true });
+        message.channel.send(data, { split: true })
+            .then(msg =>
+            {
+                if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                {
+                    message.delete({ timeout: 15000 });
+                    msg.delete({ timeout: 15000 });
+                }
+            });
     },
 };
