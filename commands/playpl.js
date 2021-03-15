@@ -3,7 +3,7 @@ const ytpl = require('ytpl');
 
 const yt = require('youtube.get-video-info');
 
-const { HSID, SSID, SID, SIDCC } = require('../config.json');
+const { HSID, SSID, SID, SIDCC, xyoutubeidentitytoken } = require('../config.json');
 
 let now = new Date();
 
@@ -60,7 +60,8 @@ module.exports =
                         {
                             headers:
                             {
-                                // Cookie: `SID=${SID}; HSID=${HSID}; SSID=${SSID}; SIDCC=${SIDCC};`,
+                                Cookie: `SID=${SID}; HSID=${HSID}; SSID=${SSID}; SIDCC=${SIDCC};`,
+                                'x-youtube-identity-token': `${xyoutubeidentitytoken}`,
                             },
                         },
                     }), { highWaterMark: 25, plp: 5 })
