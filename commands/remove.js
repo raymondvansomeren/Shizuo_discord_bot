@@ -28,7 +28,10 @@ module.exports =
         }
         else if (!isNaN(args[0]) && !isNaN(parseFloat(args[0])))
         {
-            const args0AsNumber = Number(args[0]);
+            let args0AsNumber = Number(args[0]);
+            if (Number(args[0]) <= 0)
+                args0AsNumber = 1;
+
             const temp = serverQueueSongs[args0AsNumber];
             serverQueueSongs.splice(args0AsNumber, 1);
             return message.channel.send(`Removed song at index ${args0AsNumber} (${temp.url})`);
