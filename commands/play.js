@@ -126,7 +126,15 @@ module.exports =
         let filters = undefined;
         try
         {
-            filters = await ytsr.getFilters(fullArgs);
+            filters = await ytsr.getFilters(fullArgs, { requestOptions:
+                {
+                    headers:
+                    {
+                        Cookie: `SID=${SID}; HSID=${HSID}; SSID=${SSID}; SIDCC=${SIDCC};`,
+                        'x-youtube-identity-token': `${xyoutubeidentitytoken}`,
+                    },
+                },
+            });
         }
         catch (e)
         {
@@ -150,7 +158,15 @@ module.exports =
                     }
                 });
         }
-        const results = await ytsr(filterVideo.url, { pages: 1 });
+        const results = await ytsr(filterVideo.url, { pages: 1, requestOptions:
+            {
+                headers:
+                {
+                    Cookie: `SID=${SID}; HSID=${HSID}; SSID=${SSID}; SIDCC=${SIDCC};`,
+                    'x-youtube-identity-token': `${xyoutubeidentitytoken}`,
+                },
+            },
+        });
 
         if (results.items.length === 0 || results.items === undefined || results === undefined)
         {

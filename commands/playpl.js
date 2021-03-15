@@ -113,7 +113,15 @@ module.exports =
         let playlist = undefined;
         try
         {
-            playlist = await ytpl(args[0], { limit: Infinity });
+            playlist = await ytpl(args[0], { limit: Infinity, requestOptions:
+                {
+                    headers:
+                    {
+                        Cookie: `SID=${SID}; HSID=${HSID}; SSID=${SSID}; SIDCC=${SIDCC};`,
+                        'x-youtube-identity-token': `${xyoutubeidentitytoken}`,
+                    },
+                },
+            });
         }
         catch (e)
         {
