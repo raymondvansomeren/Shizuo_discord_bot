@@ -7,7 +7,7 @@ module.exports =
     aliases: ['bot', 'info'],
     execute(bot, message, args)
     {
-        const bicon = bot.user.displayAvatarURL;
+        const bicon = bot.user.displayAvatarURL();
         const botembed = new Discord.MessageEmbed()
             .setTitle('Bot Information')
             .setColor('#FFDF2A')
@@ -16,7 +16,7 @@ module.exports =
             .addField('Created On', bot.user.createdAt)
             .addField('Server amount', bot.guilds.cache.size)
             .addField('Users', bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0))
-            .setFooter('Bot created by raymond570#2966', 'https://cdn.discordapp.com/avatars/270871921137025024/02ef6122a25f41e3bc1c38398e17f26e.png');
+            .setFooter('Bot created by raymond570#2966', `${bot.users.cache.get('270871921137025024').displayAvatarURL({ format: 'png', dynamic: true })}`);
 
         // message.delete().catch(e=>{
         //     console.log('Error: ' + e);
