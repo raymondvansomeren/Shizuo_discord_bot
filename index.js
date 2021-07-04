@@ -254,7 +254,11 @@ bot.on('guildDelete', async guild =>
     });
 });
 
-const escapeRegex = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function escapeRegex(str)
+{
+    // console.log(str);
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 bot.on('message', async message =>
 {
@@ -433,7 +437,7 @@ bot.on('voiceStateUpdate', (oldState, newState) =>
 
 bot.once('ready', () =>
 {
-    updateSites();
+    // updateSites();
 
     connection.query('SELECT Guild, Prefix, ModPrefix FROM guildsettings;',
         function(error, results)
