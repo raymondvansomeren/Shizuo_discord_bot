@@ -1,7 +1,7 @@
 const ytdl = require('ytdl-core');
 const ytpl = require('ytpl');
 
-const yt = require('youtube.get-video-info');
+// const yt = require('youtube.get-video-info');
 
 const { HSID, SSID, SID, SIDCC, xyoutubeidentitytoken } = require('../config.json');
 
@@ -150,11 +150,12 @@ module.exports =
             {
                 song.title = playlist.items[i].title;
                 song.url = `https://www.youtube.com/watch?v=${playlist.items[i].id}`;
-                yt.retrieve(playlist.items[i].id, function(err, res)
-                {
-                    if (err) throw err;
-                    song.duration = JSON.parse(res.player_response).videoDetails.lengthSeconds;
-                });
+                // yt.retrieve(playlist.items[i].id, function(err, res)
+                // {
+                //     if (err) throw err;
+                //     song.duration = JSON.parse(res.player_response).videoDetails.lengthSeconds;
+                // });
+                song.duration = 0;
 
                 if (!serverQueue || serverQueue === undefined || serverQueue === null)
                 {
