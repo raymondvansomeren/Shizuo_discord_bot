@@ -33,11 +33,8 @@ module.exports =
                 });
         }
 
-        if (!serverQueue)
-        {
-            message.guild.me.voice.setChannel(null);
-        }
-        else
+        message.guild.me.voice.setChannel(null);
+        if (serverQueue)
         {
             serverQueue.songs = [];
             serverQueue.connection.dispatcher.end();
