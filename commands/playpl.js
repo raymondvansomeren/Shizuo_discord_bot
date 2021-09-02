@@ -48,19 +48,28 @@ module.exports =
 
             if (!song)
             {
-                message.channel.send('No more songs to play, leaving voice channel');
-                serverQueue.voiceChannel.leave();
-                bot.queue.delete(guild.id);
+                serverQueue.songs = [];
+                setTimeout(() =>
+                {
+                    const serverQueue2 = bot.queue.get(guild.id);
+                    if (serverQueue2.songs.length <= 0)
+                    {
+                        message.channel.send('No more songs to play, leaving voice channel');
+                        serverQueue2.voiceChannel.leave();
+                        bot.queue.delete(guild.id);
+                    }
+                }, 15000);
                 return;
             }
             const dispatcher = serverQueue.connection
                 .play(ytdl(song.url,
                     {
+                        filter: 'audioonly',
                         highWaterMark: 1 << 25, quality: 'highestaudio', requestOptions:
                         {
                             headers:
                             {
-                                Cookie: `SID=${SID}; HSID=${HSID}; SSID=${SSID}; SIDCC=${SIDCC};`,
+                                'Cookie': `SID=${SID}; HSID=${HSID}; SSID=${SSID}; SIDCC=${SIDCC};`,
                                 'x-youtube-identity-token': `${xyoutubeidentitytoken}`,
                             },
                         },
@@ -74,6 +83,9 @@ module.exports =
                 {
                     now = new Date();
                     console.error(now.toUTCString(), ':', error);
+                    serverQueue.songs.shift();
+                    serverQueue.textChannel.send(`Could not play: **${song.title}**\n<${song.url}>`);
+                    play(guild, serverQueue.songs[0]);
                 });
 
             dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
@@ -117,7 +129,7 @@ module.exports =
                 {
                     headers:
                     {
-                        Cookie: `SID=${SID}; HSID=${HSID}; SSID=${SSID}; SIDCC=${SIDCC};`,
+                        'Cookie': `SID=${SID}; HSID=${HSID}; SSID=${SSID}; SIDCC=${SIDCC};`,
                         'x-youtube-identity-token': `${xyoutubeidentitytoken}`,
                     },
                 },
@@ -157,7 +169,7 @@ module.exports =
                 // });
                 song.duration = 0;
 
-                if (!serverQueue || serverQueue === undefined || serverQueue === null)
+                if (!serverQueue || serverQueue === undefined || serverQueue === null || serverQueue.songs.length <= 0)
                 {
                     // Creating the contract for our queue
                     const queueContruct =

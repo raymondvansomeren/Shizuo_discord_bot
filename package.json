@@ -1,16 +1,19 @@
 {
-  "name": "aurb",
+  "name": "shizuo_heiwajima",
   "version": "1.0.0",
-  "description": "Bot that will create the roles with colors of Among Us",
+  "description": "Music bot with moderation capabilities",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Raymond van Someren (raymond570#2966)",
+  "repository": {
+      "type": "git",
+      "url": "https://github.com/raymondvansomeren/Shizuo_discord_bot"
+  },
   "license": "ISC",
   "dependencies": {
     "@discordjs/opus": "^0.3.3",
-    "axios": "^0.21.1",
     "cookiefile": "^1.0.10",
     "discord.js": "^12.3.1",
     "eslint": "^7.14.0",
@@ -21,7 +24,7 @@
     "moment-duration-format": "^2.3.2",
     "mysql2": "^2.2.5",
     "youtube.get-video-info": "^1.0.2",
-    "ytdl-core": "^4.8.3",
+    "ytdl-core": "^4.9.1",
     "ytpl": "^2.0.5",
     "ytsr": "^3.3.1"
   }
