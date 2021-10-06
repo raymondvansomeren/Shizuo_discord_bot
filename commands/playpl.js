@@ -52,10 +52,14 @@ module.exports =
                 setTimeout(() =>
                 {
                     const serverQueue2 = bot.queue.get(guild.id);
-                    if (serverQueue2.songs.length <= 0)
+                    if (serverQueue2 === undefined || serverQueue2.songs.length <= 0)
                     {
                         message.channel.send('No more songs to play, leaving voice channel');
-                        serverQueue2.voiceChannel.leave();
+                        if (serverQueue2 !== undefined)
+                        {
+                            // Leave only when there is no queue
+                            serverQueue2.voiceChannel.leave();
+                        }
                         bot.queue.delete(guild.id);
                     }
                 }, 15000);
