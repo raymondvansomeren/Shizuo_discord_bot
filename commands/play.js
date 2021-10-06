@@ -52,7 +52,7 @@ module.exports =
                 setTimeout(() =>
                 {
                     const serverQueue2 = bot.queue.get(guild.id);
-                    if (serverQueue2.songs.length <= 0)
+                    if (serverQueue2?.songs?.length <= 0)
                     {
                         message.channel.send('No more songs to play, leaving voice channel');
                         serverQueue2.voiceChannel.leave();
@@ -62,22 +62,39 @@ module.exports =
                 return;
             }
 
-            const dispatcher = serverQueue.connection
-                .play(ytdl(song.url,
+            const video = ytdl(song.url,
+                {
+                    filter: 'audioonly',
+                    highWaterMark: 1 << 25, quality: 'highestaudio', requestOptions:
                     {
-                        filter: 'audioonly',
-                        highWaterMark: 1 << 25, quality: 'highestaudio', requestOptions:
+                        headers:
                         {
-                            headers:
-                            {
-                                'Cookie': `SID=${SID}; HSID=${HSID}; SSID=${SSID}; SIDCC=${SIDCC};`,
-                                'x-youtube-identity-token': `${xyoutubeidentitytoken}`,
-                            },
+                            'Cookies': `SID=${SID}; HSID=${HSID}; SSID=${SSID}; SIDCC=${SIDCC};`,
+                            // 'cookies': `${cookies}`,
+                            // 'x-youtube-identity-token': `${xyoutubeidentitytoken}`,
                         },
-                    }), { highWaterMark: 25, plp: 5 })
+                    },
+                });
+
+            const dispatcher = serverQueue.connection
+                .play(video,
+                    { highWaterMark: 25, plp: 5 })
                 .on('finish', () =>
                 {
-                    serverQueue.songs.shift();
+                    if (serverQueue.loop === 'all')
+                    {
+                        const temp = serverQueue.songs.shift();
+                        serverQueue.songs.push(temp);
+                    }
+                    else if (serverQueue.loop === 'single')
+                    {
+                        // do nothing
+                    }
+                    else
+                    {
+                        serverQueue.songs.shift();
+                    }
+
                     play(guild, serverQueue.songs[0]);
                 })
                 .on('error', (error) =>
@@ -144,7 +161,7 @@ module.exports =
                 {
                     headers:
                     {
-                        'Cookie': `SID=${SID}; HSID=${HSID}; SSID=${SSID}; SIDCC=${SIDCC};`,
+                        'Cookies': `SID=${SID}; HSID=${HSID}; SSID=${SSID}; SIDCC=${SIDCC};`,
                         'x-youtube-identity-token': `${xyoutubeidentitytoken}`,
                     },
                 },
@@ -176,7 +193,7 @@ module.exports =
             {
                 headers:
                 {
-                    'Cookie': `SID=${SID}; HSID=${HSID}; SSID=${SSID}; SIDCC=${SIDCC};`,
+                    'Cookies': `SID=${SID}; HSID=${HSID}; SSID=${SSID}; SIDCC=${SIDCC};`,
                     'x-youtube-identity-token': `${xyoutubeidentitytoken}`,
                 },
             },
@@ -198,13 +215,12 @@ module.exports =
         song.title = results.items[0].title;
         song.url = `https://www.youtube.com/watch?v=${results.items[0].id}`;
 
-        // TODO needs fixing
-        // yt.retrieve(results.items[0].id, function(err, res)
-        // {
-        //     if (err) throw err;
-        //     song.duration = JSON.parse(res.player_response).videoDetails.lengthSeconds;
-        // });
-        song.duration = 0;
+        ytdl.getInfo(song.url)
+            .then((info) =>
+            {
+                // console.log('Duration in seconds: ', info.videoDetails.lengthSeconds);
+                song.duration = info.videoDetails.lengthSeconds;
+            });
 
         if (!serverQueue || serverQueue === undefined || serverQueue === null || serverQueue.songs.length <= 0)
         {
@@ -217,6 +233,7 @@ module.exports =
                 songs: [],
                 volume: 5,
                 playing: true,
+                loop: 'none',
             };
             // Setting the queue using our contract
             bot.queue.set(message.guild.id, queueContruct);

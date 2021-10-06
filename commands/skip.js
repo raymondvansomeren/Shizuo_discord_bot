@@ -51,6 +51,22 @@ module.exports =
         else
             message.channel.send(`Skipped **${serverQueue.songs[0].title}**\n(${serverQueue.songs[0].url})`);
 
-        serverQueue.connection.dispatcher.end();
+        if (serverQueue.loop === 'all')
+        {
+            serverQueue.connection.dispatcher.end();
+        }
+        else if (serverQueue.loop === 'single')
+        {
+            serverQueue.loop = 'all';
+            serverQueue.connection.dispatcher.end();
+            setTimeout(() =>
+            {
+                serverQueue.loop = 'single';
+            }, 100);
+        }
+        else
+        {
+            serverQueue.connection.dispatcher.end();
+        }
     },
 };
