@@ -35,10 +35,18 @@ module.exports =
         embeddedQueue.setTitle('Music queue');
 
         let queueTime = 0;
+        let extraText = '';
         for (let i = 1; i < serverQueue.songs.length; i++)
+        {
+            if (serverQueue.songs[i].duration === Infinity)
+            {
+                extraText = 'over';
+                continue;
+            }
             queueTime += Number(serverQueue.songs[i].duration);
+        }
 
-        embeddedQueue.setDescription(`Total queue time: ${moment.duration(queueTime, 'seconds').format('h:mm:ss').padStart(4, '0:0')}`);
+        embeddedQueue.setDescription(`Total queue time: ${extraText} ${moment.duration(queueTime, 'seconds').format('h:mm:ss').padStart(4, '0:0')}`);
 
         let page = undefined;
         const songsPerPage = 10;
