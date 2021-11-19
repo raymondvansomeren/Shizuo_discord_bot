@@ -10,7 +10,7 @@ module.exports = {
     once: false,
     execute(client, guild)
     {
-        log(`New server joined! (${guild})`);
+        log(`New server joined! (${guild.name})`);
 
         updateSites(client);
 

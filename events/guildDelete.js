@@ -8,7 +8,8 @@ module.exports = {
     once: false,
     execute(client, guild)
     {
-        log(`Left a server! (${guild})`);
+        console.log(client);
+        log(`Left a server! (${guild.name})`);
 
         updateSites(client);
 
