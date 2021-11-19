@@ -8,9 +8,10 @@ module.exports = {
     once: false,
     execute(client, guild)
     {
+        log(`Left a server! (${guild})`);
+
         updateSites(client);
 
-        log(`Left a server! (${guild})`);
         client.user.setPresence({
             status: 'online',
             activity: {
