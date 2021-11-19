@@ -6,7 +6,7 @@ module.exports = {
     once: true,
     execute(client)
     {
-        // updateSites();
+        // updateSites(client);
 
         client.connection.get('db').query('SELECT Guild, Prefix, ModPrefix FROM guildsettings;',
             function(e, results)

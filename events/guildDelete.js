@@ -8,7 +8,7 @@ module.exports = {
     once: false,
     execute(client, guild)
     {
-        updateSites();
+        updateSites(client);
 
         log(`Left a server! (${guild})`);
         client.user.setPresence({
