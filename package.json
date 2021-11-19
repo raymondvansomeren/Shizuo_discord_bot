@@ -24,6 +24,7 @@
     "moment": "^2.29.1",
     "moment-duration-format": "^2.3.2",
     "mysql2": "^2.2.5",
+    "tx2": "^1.0.4",
     "youtube.get-video-info": "^1.0.2",
     "ytdl-core": "^4.9.1",
     "ytpl": "^2.0.5",
