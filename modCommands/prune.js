@@ -1,4 +1,5 @@
-let now = new Date();
+// const log = require('../modules/log').log;
+const error = require('../modules/log').error;
 
 module.exports =
 {
@@ -32,7 +33,9 @@ module.exports =
             try
             {
                 if (messagecount >= 100)
+                {
                     messagecount = 99;
+                }
 
                 message.channel.messages.fetch({ limit: (messagecount + 1) })
                     .then(messages =>
@@ -59,8 +62,8 @@ module.exports =
                             })
                             .catch(e =>
                             {
-                                console.error('Error: ' + e);
-                                console.log('test prune');
+                                error(e);
+                                // console.log('test prune');
                             });
                     });
             }
@@ -69,8 +72,7 @@ module.exports =
                 message.channel.send('No message were deleted due to some error')
                     .then(msg =>
                     {
-                        now = new Date();
-                        console.error(now.toUTCString(), ':', err);
+                        error(err);
                         msg.delete({ timeout: 5000 });
                         message.delete({ timeout: 5000 });
                     });

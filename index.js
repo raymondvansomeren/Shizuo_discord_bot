@@ -1,20 +1,19 @@
 const Discord = require('discord.js');
 const fs = require('fs');
 const mysql = require('mysql2');
-const axios = require('axios');
-const { token, defaultPrefix, defaultModPrefix, dbhost, dbuser, dbpassword, db } = require('./config.json');
+// const axios = require('axios');
+const { token, dbhost, dbuser, dbpassword, db } = require('./config.json');
+// const { token, defaultPrefix, defaultModPrefix, dbhost, dbuser, dbpassword, db } = require('./config.json');
 
-const bot = new Discord.Client();
-bot.commands = new Discord.Collection();
-bot.modCommands = new Discord.Collection();
-bot.prefixes = new Discord.Collection();
-bot.modPrefixes = new Discord.Collection();
-const cooldowns = new Discord.Collection();
-const modCooldowns = new Discord.Collection();
+const client = new Discord.Client();
+client.commands = new Discord.Collection();
+client.modCommands = new Discord.Collection();
+client.prefixes = new Discord.Collection();
+client.modPrefixes = new Discord.Collection();
+client.cooldowns = new Discord.Collection();
+client.modCooldowns = new Discord.Collection();
 
-bot.queue = new Discord.Collection();
-
-let now = new Date();
+client.queue = new Discord.Collection();
 
 const db_config =
 {
@@ -25,446 +24,143 @@ const db_config =
     enableKeepAlive: true,
     // debug    : true,
 };
-let connection;
+
+// bot.connection = new Discord.Collection();
+client.connection = new Discord.Collection();
+
+const log = require('./modules/log').log;
+const error = require('./modules/log').error;
 
 function handleDisconnect()
 {
     // Recreate the connection, since the old one cannot be reused.
-    connection = mysql.createConnection(db_config);
+    client.connection.set('db', mysql.createConnection(db_config));
 
     // The server is either down or restarting (takes a while sometimes).
-    connection.connect(function(err)
+    client.connection.get('db').connect(function(err)
     {
         if(err)
         {
-            now = new Date();
-            console.error(now.toUTCString(), ': Error when connecting to db:', err);
+            error('Error when connecting to db:', err);
             // We introduce a delay before attempting to reconnect, to avoid a hot loop, and to allow our node script to process asynchronous requests in the meantime.
-            setTimeout(handleDisconnect, 2000);
+            setTimeout(handleDisconnect, 1000);
         }
     });
 
-    connection.on('error', function(err)
+    client.connection.get('db').on('error', function(err)
     {
-        now = new Date();
-        console.error(now.toUTCString(), ': db error', err);
+        error('db error', err);
         // Connection to the MySQL server is usually lost due to either server restart, or a connnection idle timeout (the wait_timeout server variable configures this)
         if (err.code === 'PROTOCOL_CONNECTION_LOST')
+        {
             handleDisconnect();
+        }
         else
+        {
             throw err;
+        }
     });
 }
 handleDisconnect();
 
-
-// Default (everyone) commands
-fs.readdir('./commands/', (err, files) =>
+// Default (everyone) commands (start at 1 second)
+setTimeout(() =>
 {
-    if (err)
+    fs.readdir('./commands/', (err, files) =>
     {
-        now = new Date();
-        console.log(now.toUTCString(), ':', err);
-    }
-    now = new Date();
-    console.log(now.toUTCString(), ': Loading default commands.');
-
-    const jsfile = files.filter(f => f.split('.').pop() === 'js');
-
-    if (jsfile.length <= 0)
-    {
-        now = new Date();
-        console.log(now.toUTCString(), ': Couldn\'t find commands.');
-        return;
-    }
-
-    jsfile.forEach((f, i) =>
-    {
-        const props = require(`./commands/${f}`);
-        now = new Date();
-        console.log(now.toUTCString(), `: ${f} loaded!`);
-        bot.commands.set(props.name, props);
-    });
-});
-
-// Moderation commands
-fs.readdir('./modCommands/', (err, files) =>
-{
-    if (err)
-    {
-        now = new Date();
-        return console.error(now.toUTCString(), ':', err);
-    }
-    now = new Date();
-    console.log(now.toUTCString(), ': Loading moderation commands.');
-
-    const jsfile = files.filter(f => f.split('.').pop() === 'js');
-
-    if (jsfile.length <= 0)
-    {
-        now = new Date();
-        console.log(now.toUTCString(), ': Couldn\'t find modCommands.');
-        return;
-    }
-
-    jsfile.forEach((f, i) =>
-    {
-        const props = require(`./modCommands/${f}`);
-        now = new Date();
-        console.log(now.toUTCString(), `: ${f} loaded!`);
-        bot.modCommands.set(props.name, props);
-    });
-});
-
-function updateSites()
-{
-    const guilds = bot.guilds.cache.size;
-    // const guilds = 60;
-
-    const topgg = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijc2MTI2MjIxMDIwNjUzMTY0NSIsImJvdCI6dHJ1ZSwiaWF0IjoxNjA4NjYzOTA3fQ._g8aJuV_XCfbkFZoGai4AJMMgD3Zo_b2tZg6LJGXduw';
-    axios.post('https://top.gg/api/bots/761262210206531645/stats',
+        if (err)
         {
-            server_count: guilds,
-        },
+            log(err);
+        }
+        log('Loading default commands.');
+
+        const jsfile = files.filter(f => f.split('.').pop() === 'js');
+
+        if (jsfile.length <= 0)
         {
-            headers:
-            {
-                'Authorization': `${topgg}`,
-            },
-        });
-
-    const discordbotsgg = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGkiOnRydWUsImlkIjoiMjcwODcxOTIxMTM3MDI1MDI0IiwiaWF0IjoxNjA4ODMwMDE5fQ.b_284EFyxa6P2hBoRXSn9Zl1OZyxB-5uu6ijIu_e5Kk';
-    axios.post('https://discord.bots.gg/api/v1/bots/761262210206531645/stats',
-        {
-            guildCount: guilds,
-        },
-        {
-            headers:
-            {
-                'Authorization': `${discordbotsgg}`,
-            },
-        });
-
-    const discordbotstoken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0IjoxLCJpZCI6Ijc2MTI2MjIxMDIwNjUzMTY0NSIsImlhdCI6MTYwODgyOTczOX0.edtFODPjA8qBJpCoDSQSTitJzVwDhizWi_OGjEylV5c';
-    axios.post('https://discordbotlist.com/api/v1/bots/761262210206531645/stats',
-        {
-            guilds: `${guilds}`,
-        },
-        {
-            headers:
-            {
-                'Authorization': `${discordbotstoken}`,
-            },
-        });
-}
-
-// // TODO NEEDS SERVER MEMBER INTENT
-// bot.on('guildMemberAdd', async member =>
-// {
-//     bot.user.setPresence({
-//         status: 'online',
-//         activity: {
-//             name: `over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`,
-//             // PLAYING: WATCHING: LISTENING: STREAMING:
-//             type: 'WATCHING',
-//         },
-//     });
-//     console.log(`WATCHING over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`);
-// });
-// bot.on('guildMemberRemove', async member =>
-// {
-//     bot.user.setPresence({
-//         status: 'online',
-//         activity: {
-//             name: `over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`,
-//             // PLAYING: WATCHING: LISTENING: STREAMING:
-//             type: 'WATCHING',
-//         },
-//     });
-//     console.log(`WATCHING over ${bot.guilds.cache.size} servers and ${bot.guilds.cache.reduce((a, g) => a + g.memberCount, 0)} users`);
-// });
-
-bot.on('guildCreate', async guild =>
-{
-    updateSites();
-
-    now = new Date();
-    console.log(now.toUTCString(), `: New server joined! (${guild})`);
-    bot.user.setPresence({
-        status: 'online',
-        activity: {
-            name: `over ${bot.guilds.cache.size} servers`,
-            // PLAYING: WATCHING: LISTENING: STREAMING:
-            type: 'WATCHING',
-        },
-    });
-
-    connection.query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
-        function(error, results, fields)
-        {
-            if (error)
-            {
-                now = new Date();
-                return console.error(now.toUTCString(), ': line: 208. file: index.js =>\n', error);
-            }
-
-            // TODO change to use INSERT ON EXIST
-            if (results.length < 1 || results == undefined)
-            {
-                connection.query(`INSERT INTO guildsettings (Guild, Prefix, ModPrefix) VALUES ('${guild.id}', '${defaultPrefix}', '${defaultModPrefix}');`,
-                    function(error2, results2)
-                    {
-                        if (error2)
-                        {
-                            now = new Date();
-                            return console.error(now.toUTCString(), ':', error2);
-                        }
-                    });
-            }
-            else
-            {
-                connection.query(`UPDATE guildsettings SET Prefix = '${defaultPrefix}', ModPrefix = '${defaultModPrefix}' WHERE Guild = '${guild.id}';`,
-                    function(error3, results3)
-                    {
-                        if (error3)
-                        {
-                            now = new Date();
-                            return console.error(now.toUTCString(), ':', error3);
-                        }
-                    });
-            }
-        });
-    bot.prefixes.set(guild.id, defaultPrefix);
-    bot.modPrefixes.set(guild.id, defaultModPrefix);
-});
-
-bot.on('guildDelete', async guild =>
-{
-    updateSites();
-
-    now = new Date();
-    console.log(now.toUTCString(), `: Left a server! (${guild})`);
-    bot.user.setPresence({
-        status: 'online',
-        activity: {
-            name: `over ${bot.guilds.cache.size} servers`,
-            // PLAYING: WATCHING: LISTENING: STREAMING:
-            type: 'WATCHING',
-        },
-    });
-});
-
-function escapeRegex(str)
-{
-    // console.log(str);
-    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-bot.on('message', async message =>
-{
-    if (message.author.bot || message.channel.type === 'dm')
-        return;
-    const prefixRegex = new RegExp(`^(<@!?${bot.user.id}>|${escapeRegex(bot.prefixes.get(message.guild.id))}|${escapeRegex(bot.modPrefixes.get(message.guild.id))})\\s*`);
-
-    if (!prefixRegex.test(message.content.toLowerCase()))
-        return;
-
-    const [, matchedPrefix] = message.content.toLowerCase().match(prefixRegex);
-    const args = message.content.slice(matchedPrefix.length).trim().split(/ +/);
-    const commandName = args.shift().toLowerCase();
-
-    // Moderation  commands
-    if (message.content.toLowerCase().startsWith(bot.modPrefixes.get(message.guild.id)))
-    {
-        const command = bot.modCommands.get(commandName)
-            || bot.modCommands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
-
-        if (!command)
+            log('Couldn\'t find commands.');
             return;
-
-        if (!modCooldowns.has(command.name))
-            modCooldowns.set(command.name, new Discord.Collection());
-
-        // //TODO Moderation cooldowns removed
-        // now = Date.now();
-        // const timestamps = modCooldowns.get(command.name);
-        // const cooldownAmount = (command.cooldown || 1) * 1000;
-
-        // if (timestamps.has(message.author.id))
-        // {
-        //     const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
-
-        //     if (now < expirationTime)
-        //     {
-        //         const timeLeft = (expirationTime - now) / 1000;
-        //         return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
-        //     }
-        // }
-        // timestamps.set(message.author.id, now);
-        // setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
-
-        const commandDisabled = (command.disabled || false);
-        if (commandDisabled)
-        {
-            return message.reply(`I am sorry, \`${command.name}\` is currently disabled.`)
-                .then(msg =>
-                {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
-                });
         }
 
-        try
+        jsfile.forEach((f, i) =>
         {
-            command.execute(bot, message, args);
-        }
-        catch (e)
-        {
-            now = new Date();
-            console.error(now.toUTCString(), ':', e);
-            message.reply('there was an error trying to execute that command!')
-                .then(msg =>
-                {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 10000 });
-                        msg.delete({ timeout: 10000 });
-                    }
-                });
-        }
-    }
-    // Default (everyone) commands
-    else
+            const props = require(`./commands/${f}`);
+            log(`command ${f} loaded!`);
+            client.commands.set(props.name, props);
+        });
+    });
+}, 1000);
+
+// Moderation commands (start at 2 seconds)
+setTimeout(() =>
+{
+    fs.readdir('./modCommands/', (err, files) =>
     {
-        const command = bot.commands.get(commandName)
-            || bot.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+        if (err)
+        {
+            return error(err);
+        }
+        log('Loading moderation commands.');
 
-        if (!command)
+        const jsfile = files.filter(f => f.split('.').pop() === 'js');
+
+        if (jsfile.length <= 0)
+        {
+            log('Couldn\'t find modCommands.');
             return;
-
-        if (!cooldowns.has(command.name))
-            cooldowns.set(command.name, new Discord.Collection());
-
-        now = Date.now();
-        const timestamps = cooldowns.get(command.name);
-        const cooldownAmount = (command.cooldown || 1) * 1000;
-
-        if (timestamps.has(message.author.id))
-        {
-            const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
-
-            if (now < expirationTime)
-            {
-                const timeLeft = (expirationTime - now) / 1000;
-                return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`)
-                    .then(msg =>
-                    {
-                        if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                        {
-                            message.delete({ timeout: 5000 });
-                            msg.delete({ timeout: 5000 });
-                        }
-                    });
-            }
-        }
-        timestamps.set(message.author.id, now);
-        setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
-
-        const commandDisabled = (command.disabled || false);
-        if (commandDisabled)
-        {
-            return message.reply(`I am sorry, \`${command.name}\` is currently disabled.`)
-                .then(msg =>
-                {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
-                });
         }
 
-        try
+        jsfile.forEach((f, i) =>
         {
-            command.execute(bot, message, args);
-        }
-        catch (e)
-        {
-            now = new Date();
-            console.error(now.toUTCString(), ':', e);
-            message.reply('there was an error trying to execute that command!')
-                .then(msg =>
-                {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 10000 });
-                        msg.delete({ timeout: 10000 });
-                    }
-                });
-        }
-    }
-});
+            const props = require(`./modCommands/${f}`);
+            log(`modCommand ${f} loaded!`);
+            client.modCommands.set(props.name, props);
+        });
+    });
+}, 2000);
 
-bot.on('voiceStateUpdate', (oldState, newState) =>
+// Event handling (start at 4 seconds)
+// TODO add handling for when 2 seconds ain't enough
+setTimeout(() =>
 {
-    // Update on the bots voiceState?
-    if (oldState.id === bot.user.id)
+    log('Loading events.');
+    const eventFiles = fs.readdirSync('./events').filter(file => file.endsWith('.js'));
+    for (const file of eventFiles)
     {
-        // Bot joined a channel
-        if (oldState.channelID === null && newState.channelID !== null)
+        const event = require(`./events/${file}`);
+        log(`event ${event.name} loaded!`);
+        if (event.once)
         {
-            now = new Date();
-            console.log(now.toUTCString(), 'Joining voice channel in server:', oldState.guild.name);
-        }
-        // Bot moved to another channel
-        else if (oldState.channelID !== null && newState.channelID !== null && newState.channelID !== oldState.channelID)
-        {
-            now = new Date();
-            console.log(now.toUTCString(), 'Moved from a voice channel in server:', oldState.guild.name);
-        }
-        // Bot leaving/kicked from a channel
-        else if (oldState.channelID !== null && newState.channelID === null)
-        {
-            now = new Date();
-            console.log(now.toUTCString(), 'Leaving/kicked form a voice channel in server:', oldState.guild.name);
-            bot.queue.delete(newState.guild.id);
-        }
-    }
-});
-
-bot.once('ready', () =>
-{
-    // updateSites();
-
-    connection.query('SELECT Guild, Prefix, ModPrefix FROM guildsettings;',
-        function(error, results)
-        {
-            if (error)
+            client.once(event.name, (...args) =>
             {
-                now = new Date();
-                return console.error(now.toUTCString(), ':', error);
-            }
-
-            results.forEach(function(r)
-            {
-                bot.prefixes.set(r.Guild, r.Prefix);
-                bot.modPrefixes.set(r.Guild, r.ModPrefix);
+                event.execute(...args, client);
             });
-        });
+        }
+        else
+        {
+            client.on(event.name, (...args) =>
+            {
+                event.execute(...args, client);
+            });
+        }
+    }
+}, 4000);
 
-    now = new Date();
-    console.log(now.toUTCString(), ': Ready!');
-    bot.user.setPresence({
-        status: 'online',
-        activity: {
-            name: `over ${bot.guilds.cache.size} servers`,
-            // PLAYING: WATCHING: LISTENING: STREAMING:
-            type: 'WATCHING',
-        },
-    });
-});
+// Login after 6 seconds
+setTimeout(() =>
+{
+    client.login(token);
+}, 6000);
 
-bot.login(token);
+// Print every hour the current uptime (in hours)
+let times = 0;
+setInterval(() =>
+{
+    times++;
+    log(`Uptime in hours: ${times}`);
+}, 3600000);
+
+// process.on('uncaughtException', function(err)
+// {
+//     error('Caught exception: ' + err);
+// });

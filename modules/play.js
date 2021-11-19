@@ -2,19 +2,22 @@ const ytdl = require('ytdl-core');
 
 const { HSID, SSID, SID, SIDCC, xyoutubeidentitytoken } = require('../config.json');
 
-let now = new Date();
+const error = require('../modules/log').error;
 
 module.exports = {
-    execute(bot, message, guild, song)
+    execute(message, song)
     {
-        const serverQueue = bot.queue.get(guild.id);
+        const client = message.client;
+        const guild = message.guild;
+
+        const serverQueue = client.queue.get(guild.id);
 
         if (!song)
         {
             serverQueue.songs = [];
             setTimeout(() =>
             {
-                const serverQueue2 = bot.queue.get(guild.id);
+                const serverQueue2 = client.queue.get(guild.id);
                 if (serverQueue2 === undefined || serverQueue2.songs.length <= 0)
                 {
                     message.channel.send('No more songs to play, leaving voice channel');
@@ -23,7 +26,7 @@ module.exports = {
                         // Leave only when there is no queue
                         serverQueue2.voiceChannel.leave();
                     }
-                    bot.queue.delete(guild.id);
+                    client.queue.delete(guild.id);
                 }
             }, 15000);
             return;
@@ -62,15 +65,15 @@ module.exports = {
                     serverQueue.songs.shift();
                 }
 
-                this.execute(bot, message, guild, serverQueue.songs[0]);
+                // this.execute is not a function!!
+                module.exports.execute(message, serverQueue.songs[0]);
             })
-            .on('error', (error) =>
+            .on('error', (e) =>
             {
-                now = new Date();
-                console.error(now.toUTCString(), ':', error);
+                error(e);
                 serverQueue.songs.shift();
                 serverQueue.textChannel.send(`Could not play: **${song.title}**\n<${song.url}>`);
-                this.execute(bot, message, guild, serverQueue.songs[0]);
+                module.exports.execute(message, serverQueue.songs[0]);
             });
 
         dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);

@@ -1,5 +1,8 @@
 const { ownerID } = require('../config.json');
 
+// const log = require('../modules/log').log;
+const error = require('../modules/log').error;
+
 module.exports =
 {
     name: 'reload',
@@ -10,7 +13,9 @@ module.exports =
         if (message.author.id === ownerID)
         {
             if (!args.length)
+            {
                 return message.channel.send(`You didn't pass any command to reload, ${message.author}!`);
+            }
 
             const commandName = args[0].toLowerCase();
 
@@ -34,11 +39,10 @@ module.exports =
                     commands.set(newCommand.name, newCommand);
                     message.channel.send(`Default command \`${command.name}\` was reloaded!`);
                 }
-                catch (error)
+                catch (e)
                 {
-                    const now = new Date();
-                    console.error(now.toUTCString(), ':', error);
-                    message.channel.send(`There was an error while reloading a default command \`${command.name}\`:\n\`${error.message}\`\nPlease contact the dev: \`raymond570#2966\``);
+                    error(e);
+                    message.channel.send(`There was an error while reloading a default command \`${command.name}\`:\n\`${e.message}\`\nPlease contact the dev: \`raymond570#2966\``);
                 }
                 break;
             }
@@ -63,11 +67,10 @@ module.exports =
                     commands.set(newCommand.name, newCommand);
                     message.channel.send(`Moderation command \`${command.name}\` was reloaded!`);
                 }
-                catch (error)
+                catch (e)
                 {
-                    const now = new Date();
-                    console.error(now.toUTCString(), ':', error);
-                    message.channel.send(`There was an error while reloading a moderation command \`${command.name}\`:\n\`${error.message}\`\nPlease contact the dev: \`raymond570#2966\``);
+                    error(e);
+                    message.channel.send(`There was an error while reloading a moderation command \`${command.name}\`:\n\`${e.message}\`\nPlease contact the dev: \`raymond570#2966\``);
                 }
                 break;
             }

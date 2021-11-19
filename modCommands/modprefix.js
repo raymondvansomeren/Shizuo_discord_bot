@@ -8,7 +8,8 @@ const connection = mysql.createConnection({
     database : db,
 });
 
-let now = new Date();
+// const log = require('../modules/log').log;
+const error = require('../modules/log').error;
 
 module.exports =
 {
@@ -44,13 +45,12 @@ module.exports =
         }
 
         connection.query(`SELECT Prefix FROM guildsettings WHERE Guild = '${message.guild.id}'`,
-            function(error, results, fields)
+            function(e, results, fields)
             {
-                if (error)
+                if (e)
                 {
-                    message.channel.send(error);
-                    now = new Date();
-                    return console.error(now.toUTCString(), ':', error);
+                    message.channel.send(e);
+                    return error(e);
                 }
                 if (results[0].Prefix === args[0])
                 {
@@ -66,13 +66,12 @@ module.exports =
                 }
 
                 connection.query(`UPDATE guildsettings SET ModPrefix = '${args[0]}' WHERE Guild = '${message.guild.id}'`,
-                    function(error2, results2, fields2)
+                    function(ee, results2, fields2)
                     {
-                        if (error2)
+                        if (ee)
                         {
-                            message.channel.send(error2);
-                            now = new Date();
-                            return console.error(now.toUTCString(), ':', error2);
+                            message.channel.send(ee);
+                            return error(ee);
                         }
                         bot.modPrefixes.set(message.guild.id, args[0]);
                         message.channel.send(`Succesfully changed the moderation prefix to \`${args[0]}\``)
