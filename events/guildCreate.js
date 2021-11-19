@@ -10,7 +10,7 @@ module.exports = {
     once: false,
     execute(client, guild)
     {
-        if (client === undefined || guild === undefined)
+        if (client === undefined || client.user === undefined || client.connection === undefined || guild === undefined)
         {
             return;
         }
