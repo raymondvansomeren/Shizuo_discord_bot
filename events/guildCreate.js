@@ -10,6 +10,10 @@ module.exports = {
     once: false,
     execute(client, guild)
     {
+        if (client === undefined || guild === undefined)
+        {
+            return;
+        }
         log(`New server joined! (${guild.name})`);
 
         updateSites(client);

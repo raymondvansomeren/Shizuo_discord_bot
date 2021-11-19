@@ -8,7 +8,10 @@ module.exports = {
     once: false,
     execute(client, guild)
     {
-        console.log(client);
+        if (client === undefined || guild === undefined)
+        {
+            return;
+        }
         log(`Left a server! (${guild.name})`);
 
         updateSites(client);
