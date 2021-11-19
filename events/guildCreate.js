@@ -10,7 +10,7 @@ module.exports = {
     once: false,
     execute(client, guild)
     {
-        updateSites();
+        updateSites(client);
 
         log(`New server joined! (${guild})`);
         client.user.setPresence({
