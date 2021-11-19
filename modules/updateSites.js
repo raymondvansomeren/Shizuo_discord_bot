@@ -4,6 +4,10 @@ module.exports = {
     name: 'updateSites',
     execute(client)
     {
+        if (client === undefined || client.guilds === undefined || client.guilds.cache === undefined)
+        {
+            return;
+        }
         const guilds = client.guilds.cache.size;
         // const guilds = 60;
 
