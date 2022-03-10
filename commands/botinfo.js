@@ -1,5 +1,8 @@
 const Discord = require('discord.js');
 
+// const log = require('../modules/log').log;
+// const error = require('../modules/log').error;
+
 module.exports =
 {
     name: 'botinfo',
@@ -19,7 +22,7 @@ module.exports =
             .setFooter('Bot created by raymond570#2966', `${bot.users.cache.get('270871921137025024').displayAvatarURL({ format: 'png', dynamic: true })}`);
 
         // message.delete().catch(e=>{
-        //     console.log('Error: ' + e);
+        //     log(e);
         // });
         message.channel.send(botembed);
     },

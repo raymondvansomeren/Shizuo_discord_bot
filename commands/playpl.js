@@ -5,7 +5,10 @@ const ytpl = require('ytpl');
 
 const { HSID, SSID, SID, SIDCC, xyoutubeidentitytoken } = require('../config.json');
 
-let now = new Date();
+// const log = require('../modules/log').log;
+const error = require('../modules/log').error;
+
+const play = require('../modules/play.js').execute;
 
 module.exports =
 {
@@ -40,78 +43,6 @@ module.exports =
                         msg.delete({ timeout: 5000 });
                     }
                 });
-        }
-
-        function play(guild, song)
-        {
-            const serverQueue = bot.queue.get(guild.id);
-
-            if (!song)
-            {
-                serverQueue.songs = [];
-                setTimeout(() =>
-                {
-                    const serverQueue2 = bot.queue.get(guild.id);
-                    if (serverQueue2 === undefined || serverQueue2.songs.length <= 0)
-                    {
-                        message.channel.send('No more songs to play, leaving voice channel');
-                        if (serverQueue2 !== undefined)
-                        {
-                            // Leave only when there is no queue
-                            serverQueue2.voiceChannel.leave();
-                        }
-                        bot.queue.delete(guild.id);
-                    }
-                }, 15000);
-                return;
-            }
-
-            const video = ytdl(song.url,
-                {
-                    filter: 'audioonly',
-                    highWaterMark: 1 << 25, quality: 'highestaudio', requestOptions:
-                    {
-                        headers:
-                        {
-                            'Cookies': `SID=${SID}; HSID=${HSID}; SSID=${SSID}; SIDCC=${SIDCC};`,
-                            // 'cookies': `${cookies}`,
-                            // 'x-youtube-identity-token': `${xyoutubeidentitytoken}`,
-                        },
-                    },
-                });
-
-            const dispatcher = serverQueue.connection
-                .play(video,
-                    { highWaterMark: 25, plp: 5 })
-                .on('finish', () =>
-                {
-                    if (serverQueue.loop === 'all')
-                    {
-                        const temp = serverQueue.songs.shift();
-                        serverQueue.songs.push(temp);
-                    }
-                    else if (serverQueue.loop === 'single')
-                    {
-                        // do nothing
-                    }
-                    else
-                    {
-                        serverQueue.songs.shift();
-                    }
-
-                    play(guild, serverQueue.songs[0]);
-                })
-                .on('error', (error) =>
-                {
-                    now = new Date();
-                    console.error(now.toUTCString(), ':', error);
-                    serverQueue.songs.shift();
-                    serverQueue.textChannel.send(`Could not play: **${song.title}**\n<${song.url}>`);
-                    play(guild, serverQueue.songs[0]);
-                });
-
-            dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
-            serverQueue.textChannel.send(`Now playing: **${song.title}**\n(${song.url})`);
         }
 
         const voiceChannel = message.member.voice.channel;
@@ -159,16 +90,19 @@ module.exports =
         }
         catch (e)
         {
-            now = new Date();
-            console.log(now.toUTCString(), ' :', e);
+            error(e);
             if (e.statusCode >= 400)
+            {
                 return message.channel.send(`Some error happened, status code ${e.statusCode}. Should be fixed shortly`);
+            }
 
             return message.channel.send('Some error happened');
         }
 
         if (playlist === undefined || playlist === null)
+        {
             return message.channel.send('Could not find');
+        }
 
         for (let i = 0; i < playlist.estimatedItemCount; i++)
         {
@@ -217,16 +151,15 @@ module.exports =
                         const connection = await voiceChannel.join();
                         queueContruct.connection = connection;
                         // Calling the play function to start a song
-                        play(message.guild, queueContruct.songs[0]);
+                        play(message, queueContruct.songs[0]);
                         added++;
                     }
-                    catch (err)
+                    catch (e)
                     {
                         // Printing the error message if the bot fails to join the voicechat
-                        now = new Date();
-                        console.error(now.toUTCString(), ':', err);
+                        error(e);
                         bot.queue.delete(message.guild.id);
-                        return message.channel.send(err)
+                        return message.channel.send(e)
                             .then(msg =>
                             {
                                 if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
@@ -249,8 +182,12 @@ module.exports =
             }
         }
         if (notAdded === 0)
+        {
             return message.channel.send(`Added ${added} songs.`);
+        }
         else
+        {
             return message.channel.send(`Added ${added} songs. Not added ${notAdded} songs.`);
+        }
     },
 };
