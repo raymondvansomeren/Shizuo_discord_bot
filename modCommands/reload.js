@@ -5,6 +5,7 @@ module.exports =
     name: 'reload',
     description: 'Reloads a command',
     usage: '[command]',
+    hide: true,
     execute(bot, message, args)
     {
         if (message.author.id === ownerID)

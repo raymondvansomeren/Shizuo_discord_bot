@@ -17,18 +17,19 @@ module.exports =
             for (const cmd of commands.map(command => command))
             {
                 const commandDisabled = (cmd.disabled || false);
-                if (!commandDisabled)
+                const commandHidden = (cmd.hide || false);
+                if (!commandDisabled && !commandHidden)
                     data.push(`:white_small_square: **${cmd.name}**`);
             }
             data.push(`\nYou can send \`${bot.prefixes.get(message.guild.id)}help [command name]\` to get info on a specific command!`);
 
             return message.channel.send(data, { split: true })
-                .then(msg =>
+                .then((msg) =>
                 {
                     if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
                     {
-                        message.delete({ timeout: 15000 });
                         msg.delete({ timeout: 15000 });
+                        message.delete({ timeout: 15000 });
                     }
                 });
         }
@@ -39,12 +40,12 @@ module.exports =
         if (!command)
         {
             return message.reply('that\'s not a valid command!')
-                .then(msg =>
+                .then((msg) =>
                 {
                     if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
                     {
-                        message.delete({ timeout: 5000 });
                         msg.delete({ timeout: 5000 });
+                        message.delete({ timeout: 5000 });
                     }
                 });
         }

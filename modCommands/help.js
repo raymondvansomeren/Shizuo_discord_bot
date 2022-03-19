@@ -14,23 +14,25 @@ module.exports =
         if (!args.length)
         {
             data.push('Here\'s a list of all my commands:');
-            for (const cmd of modCommands.map(command => command.name))
+            for (const cmd of modCommands.map(command => command))
             {
+                console.log(cmd);
                 const commandDisabled = (cmd.disabled || false);
-                if (cmd !== 'reload' || !commandDisabled)
-                    data.push(`:white_small_square: **${cmd}**`);
+                const commandHidden = (cmd.hide || false);
+                if (!commandDisabled && !commandHidden)
+                    data.push(`:white_small_square: **${cmd.name}**`);
             }
-            data.push(`\nYou can send \`${bot.modPrefixes.get(message.guild.id)}help [command name]\` to get info on a specific command!`)
+            data.push(`\nYou can send \`${bot.modPrefixes.get(message.guild.id)}help [command name]\` to get info on a specific command!`);
+
+            return message.channel.send(data, { split: true })
                 .then(msg =>
                 {
                     if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
                     {
-                        message.delete({ timeout: 15000 });
                         msg.delete({ timeout: 15000 });
+                        message.delete({ timeout: 15000 });
                     }
                 });
-
-            return message.channel.send(data, { split: true });
         }
 
         const name = args[0].toLowerCase();
@@ -43,8 +45,8 @@ module.exports =
                 {
                     if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
                     {
-                        message.delete({ timeout: 5000 });
                         msg.delete({ timeout: 5000 });
+                        message.delete({ timeout: 5000 });
                     }
                 });
         }
