@@ -1,23 +1,21 @@
 {
-    "token": "your-token-here",
-    "ownerID": "your-discord-id-here",
-    "youtubeKey": "youtube-api-key-here",
-    "defaultPrefix": "s!",
-    "defaultModPrefix": "s@",
-    "dbhost": "",
-    "dbuser": "",
-    "dbpassword": "",
-    "db": "",
-    "invitelink": "",
-    "discord": "",
+    "token": "",
+    "clientId": "",
+    "logLevel": "debug",
+    "inDevelopment": true,
+    "devServer": "",
+    "color": "#5E202E",
+    "youtubeKey": "",
+    "invitelink": "https://discord.com/api/oauth2/authorize?client_id=761262210206531645&permissions=288435286&scope=bot%20applications.commands",
+    "discord": "https://discord.gg/ZQ23K2AkJz",
     "vote": [
         {
-            "name": "sitename one",
-            "link": "link one"
+            "name": "discordbotlist",
+            "link": "https://discordbotlist.com/bots/shizuo-heiwajima/upvote"
         },
         {
-            "name": "sitename two",
-            "link": "link two"
+            "name": "topgg",
+            "link": "https://top.gg/bot/761262210206531645/vote"
         }
     ],
     "youtube-cookies":
@@ -26,6 +24,7 @@
         "SSID": "",
         "HSID": "",
         "SIDCC": "",
-        "xyoutubeidentitytoken": ""
+        "xyoutubeidentitytoken": "",
+        "cookies": ""
     }
 }
