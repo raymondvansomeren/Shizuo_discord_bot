@@ -1,213 +1,156 @@
+const baseCommand = require('../modules/base-command.js');
+const baseEmbed = require('../modules/base-embed.js');
+
 const ytdl = require('ytdl-core');
 const ytsr = require('ytsr');
 
-// const yt = require('youtube.get-video-info');
-
-const log = require('../modules/log').log;
-const error = require('../modules/log').error;
-
-const play = require('../modules/play.js').execute;
-
-// TODO fix age restricted videos
-const { HSID, SSID, SID, SIDCC, xyoutubeidentitytoken } = require('../config.json');
-
-module.exports =
-{
+module.exports = {
     name: 'play',
-    description: 'Plays a song in your current channel (if I ain\'t in a channel yet). If there is already a song playing, add song to the queue',
-    aliases: ['song', 'p', 'addsong'],
-    usage: '[song url] / [search text]',
-    async execute(bot, message, args)
+    description: 'Starts playing a song/add to queue',
+    async execute(interaction)
     {
-        if (message.member.roles.cache.find(role => role.name.toLowerCase() === 'nomusic') || message.member.roles.cache.find(role => role.name.toLowerCase() === 'incapacitated'))
-        {
-            return message.channel.send('Seems like you aren\'t allowed to use the music features :confused:')
-                .then(msg =>
-                {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
-                });
-        }
-
-        if (args.length === 0)
-        {
-            return message.channel.send('You didn\'t pass me a song')
-                .then(msg =>
-                {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
-                });
-        }
-
-        // play(message, song);
-
-        const serverQueue = bot.queue.get(message.guild.id);
-        const voiceChannel = message.member.voice.channel;
-        if (!voiceChannel)
-        {
-            return message.channel.send('You need to be in a voice channel to play music!')
-                .then(msg =>
-                {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
-                });
-        }
-
-        const permissions = voiceChannel.permissionsFor(message.guild.me);
-        if (!permissions.has('VIEW_CHANNEL') || !permissions.has('CONNECT') || !permissions.has('SPEAK'))
-        {
-            return message.channel.send('I need the permissions to join and speak in your voice channel!')
-                .then(msg =>
-                {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
-                });
-        }
-
-
-        const song =
-        {
-            title: '',
-            url: '',
-            duration: Infinity,
-        };
-        let fullArgs = '';
-        for (let i = 0; i < args.length; i++)
-        {
-            if (i !== 0)
-            {
-                fullArgs += ' ';
-            }
-            fullArgs += `${args[i]}`;
-        }
-
-        let filters = undefined;
         try
         {
-            filters = await ytsr.getFilters(fullArgs, { requestOptions:
-                {
-                    headers:
-                    {
-                        'Cookies': `SID=${SID}; HSID=${HSID}; SSID=${SSID}; SIDCC=${SIDCC};`,
-                        'x-youtube-identity-token': `${xyoutubeidentitytoken}`,
-                    },
-                },
-            });
-        }
-        catch (e)
-        {
-            log(e);
-            if (e.statusCode >= 400)
+            // interaction.type 2 is ApplicationCommand: https://discord-api-types.dev/api/discord-api-types-v10/enum/InteractionType
+            // This is only checked for commands with options, because the options will only be available if the interaction type is ApplicationCommand
+            if (interaction.type !== 2)
             {
-                return message.channel.send(`Some error happened, status code ${e.statusCode}. Should be fixed shortly`);
+                throw `WrongInteractionType: Interaction type should be 2, but was ${interaction.type}`;
             }
 
-            return message.channel.send('Some error happened');
-        }
-        const filterVideo = filters.get('Type').get('Video');
-        if (filterVideo.url === undefined || filterVideo.url === null)
-        {
-            return message.channel.send(`Could not find ${fullArgs}`)
-                .then(msg =>
-                {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
-                });
-        }
-        const results = await ytsr(filterVideo.url, { pages: 1, requestOptions:
+            await interaction.deferReply({ ephemeral: true });
+
+            if (interaction.member?.roles?.cache?.find(role => role.name.toLowerCase() === 'nomusic')
+                || interaction.member?.roles?.cache?.find(role => role.name.toLowerCase() === 'incapacitated'))
             {
-                headers:
-                {
-                    'Cookies': `SID=${SID}; HSID=${HSID}; SSID=${SSID}; SIDCC=${SIDCC};`,
-                    'x-youtube-identity-token': `${xyoutubeidentitytoken}`,
-                },
-            },
-        });
-
-        if (results.items.length === 0 || results.items === undefined || results === undefined)
-        {
-            return message.channel.send(`Could not find ${fullArgs}`)
-                .then(msg =>
-                {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
-                });
-        }
-
-        song.title = results.items[0].title;
-        song.url = `https://www.youtube.com/watch?v=${results.items[0].id}`;
-
-        ytdl.getInfo(song.url)
-            .then((info) =>
-            {
-                // console.log('Duration in seconds: ', info.videoDetails.lengthSeconds);
-                song.duration = info.videoDetails.lengthSeconds;
-            });
-
-        if (!serverQueue || serverQueue === undefined || serverQueue === null || serverQueue.songs.length <= 0)
-        {
-            // Creating the contract for our queue
-            const queueContruct =
-            {
-                textChannel: message.channel,
-                voiceChannel: voiceChannel,
-                connection: null,
-                songs: [],
-                volume: 5,
-                playing: true,
-                loop: 'none',
-            };
-            // Setting the queue using our contract
-            bot.queue.set(message.guild.id, queueContruct);
-            // Pushing the song to our songs array
-            queueContruct.songs.push(song);
-
-            try
-            {
-                // Here we try to join the voicechat and save our connection into our object.
-                const connection = await voiceChannel.join();
-                queueContruct.connection = connection;
-                // Calling the play function to start a song
-                play(message, queueContruct.songs[0]);
+                return interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription('Seems like you aren\'t allowed to use the music features :confused:')], ephemeral: true });
             }
-            catch (err)
+
+            const group = interaction.options?.data[0];
+            const subcommand = group.options[0];
+            const options = subcommand.options[0];
+
+            switch(group.name)
             {
-                // Printing the error message if the bot fails to join the voicechat
-                error(err);
-                bot.queue.delete(message.guild.id);
-                return message.channel.send(err)
-                    .then(msg =>
-                    {
-                        if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                        {
-                            message.delete({ timeout: 5000 });
-                            msg.delete({ timeout: 5000 });
-                        }
-                    });
+            case 'playlist':
+            {
+                switch (subcommand.name)
+                {
+                case 'youtube_url':
+                {
+                    // interaction.client.logger.debug(`playlist url ${options.value}`);
+                    this.youtubePlaylistURL(interaction, options);
+                    break;
+                }
+                }
+                break;
+            }
+            case 'song':
+            {
+                switch (subcommand.name)
+                {
+                case 'youtube_url':
+                {
+                    // interaction.client.logger.debug(`song url youtube ${options.value}`);
+                    this.youtubeSongURL(interaction, options);
+                    break;
+                }
+                case 'youtube_search':
+                {
+                    // interaction.client.logger.debug(`song search youtube ${options.value}`);
+                    this.youtubeSongSearch(interaction, options);
+                    break;
+                }
+                case 'spotify_url':
+                {
+                    // interaction.client.logger.debug(`song url spotify ${options.value}`);
+                    this.spotifySongURL(interaction, options);
+                    break;
+                }
+                }
+                break;
+            }
             }
         }
-        else
+        catch (error)
         {
-            serverQueue.songs.push(song);
-            return message.channel.send(`**${song.title}** has been added to the queue!\n(${song.url})`);
+            const embed = baseEmbed.get(interaction.client)
+                .setDescription('Something went wrong, try again later');
+            if (interaction.deferred || interaction.replied)
+            {
+                interaction.editReply({ embeds: [embed.data], ephemeral: true });
+            }
+            else
+            {
+                interaction.reply({ embeds: [embed.data], ephemeral: true });
+            }
+            interaction.client.logger.error(error);
         }
+    },
+    async youtubePlaylistURL(interaction, options)
+    {
+        // TODO do something
+        const embed = baseEmbed.get(interaction.client)
+            .setDescription('This feature is not yet implemented');
+        interaction.editReply({ embeds: [embed], ephemeral: true });
+    },
+    async youtubeSongURL(interaction, options)
+    {
+        // TODO do something
+        const embed = baseEmbed.get(interaction.client)
+            .setDescription('This feature is not yet implemented');
+        interaction.editReply({ embeds: [embed], ephemeral: true });
+    },
+    async youtubeSongSearch(interaction, options)
+    {
+        // TODO do something
+        const embed = baseEmbed.get(interaction.client)
+            .setDescription('This feature is not yet implemented');
+        interaction.editReply({ embeds: [embed], ephemeral: true });
+    },
+    async spotifySongURL(interaction, options)
+    {
+        // TODO do something
+        const embed = baseEmbed.get(interaction.client)
+            .setDescription('This feature is not yet implemented');
+        interaction.editReply({ embeds: [embed], ephemeral: true });
+    },
+    getCommand()
+    {
+        return baseCommand.get(this)
+            .addSubcommandGroup(group =>
+                group.setName('playlist')
+                    .setDescription('something')
+                    .addSubcommand(subcommand =>
+                        subcommand.setName('youtube_url')
+                            .setDescription('Add a whole playlist by URL')
+                            .addStringOption(option =>
+                                option.setName('url')
+                                    .setDescription('The URL of the playlist')
+                                    .setRequired(true))))
+            .addSubcommandGroup(group =>
+                group.setName('song')
+                    .setDescription('something')
+                    .addSubcommand(subcommand =>
+                        subcommand.setName('youtube_url')
+                            .setDescription('Add a single song by URL')
+                            .addStringOption(option =>
+                                option.setName('url')
+                                    .setDescription('The URL of the song')
+                                    .setRequired(true)))
+                    .addSubcommand(subcommand =>
+                        subcommand.setName('spotify_url')
+                            .setDescription('Add a single song by spotify URL')
+                            .addStringOption(option =>
+                                option.setName('url')
+                                    .setDescription('The URL of the song')
+                                    .setRequired(true)))
+                    .addSubcommand(subcommand =>
+                        subcommand.setName('youtube_search')
+                            .setDescription('Add a single song by a search query')
+                            .addStringOption(option =>
+                                option.setName('query')
+                                    .setDescription('The search query for a single song')
+                                    .setRequired(true))));
     },
 };
