@@ -3,6 +3,9 @@ const baseEmbed = require('../modules/base-embed.js');
 const { joinVoiceChannel } = require('@discordjs/voice');
 const { play } = require('../modules/play.js');
 
+const moment = require('moment');
+const momentDurationFormatSetup = require('moment-duration-format');
+
 module.exports = {
     queueObject: class queueObject
     {
@@ -100,6 +103,8 @@ module.exports = {
             this.songs.push(song);
             this.interaction.client.queue.set(this.interaction.guild.id, this);
 
+            momentDurationFormatSetup;
+
             if (this.songs.length === 1)
             {
                 try
@@ -113,7 +118,10 @@ module.exports = {
                     }));
                     interaction.editReply({ embeds: [
                         baseEmbed.get(this.interaction.client)
-                            .setDescription(`Now playing **[${song.title}](${song.url})**`),
+                            .setDescription(`Now playing **[${song.title}](${song.url})**`)
+                            .addFields([
+                                { name: 'Duration', value: `${moment.duration(song.duration, 'seconds').format('h:mm:ss').padStart(4, '0:0')} minutes`, inline: true },
+                            ]),
                     ] });
                     // Calling the play function to start a song
                     play(this.interaction, this.getSongs(0));
@@ -145,7 +153,10 @@ module.exports = {
                 {
                     interaction.editReply({ embeds: [
                         baseEmbed.get(this.interaction.client)
-                            .setDescription(`Added **[${song.title}](${song.url})** to the queue`),
+                            .setDescription(`Added **[${song.title}](${song.url})** to the queue`)
+                            .addFields([
+                                { name: 'Duration', value: `${moment.duration(song.duration, 'seconds').format('h:mm:ss').padStart(4, '0:0')} minutes`, inline: true },
+                            ]),
                     ] });
                 }
                 return true;

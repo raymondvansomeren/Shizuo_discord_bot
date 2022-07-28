@@ -2,6 +2,9 @@ const baseEmbed = require('../modules/base-embed.js');
 
 const { createAudioPlayer, NoSubscriberBehavior, createAudioResource, AudioPlayerStatus } = require('@discordjs/voice');
 
+const moment = require('moment');
+const momentDurationFormatSetup = require('moment-duration-format');
+
 const ytdl = require('ytdl-core');
 
 module.exports = {
@@ -161,6 +164,14 @@ module.exports = {
             {
                 // Nothing
             });
-        serverQueue.setMessage(await serverQueue.interaction.channel.send({ embeds: [baseEmbed.get(interaction.client).setDescription(`Now playing: **[${song.title}](${song.url})**`)] }));
+        momentDurationFormatSetup;
+        serverQueue.setMessage(await serverQueue.interaction.channel.send({ embeds: [
+            baseEmbed.get(interaction.client)
+                .setDescription(`Now playing: **[${song.title}](${song.url})**`)
+                .addFields([
+                    { name: 'Duration', value: `${moment.duration(song.duration, 'seconds').format('h:mm:ss').padStart(4, '0:0')} minutes`, inline: true },
+                    { name: 'Added by', value: `${song.user}`, inline: true },
+                ]),
+        ] }));
     },
 };

@@ -7,6 +7,8 @@
     "eslint": "^8.20.0",
     "ffmpeg-static": "^5.0.2",
     "log4js": "^6.6.0",
+    "moment": "^2.29.4",
+    "moment-duration-format": "^2.3.2",
     "sodium": "^3.0.2",
     "ytdl-core": "^4.11.0",
     "ytpl": "^2.3.0",

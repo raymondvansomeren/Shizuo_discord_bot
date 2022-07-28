@@ -130,6 +130,7 @@ module.exports = {
                     title: playlist.items[i]?.title,
                     url: playlist.items[i]?.shortUrl,
                     duration: playlist.items[i]?.durationSec ?? Infinity,
+                    user: interaction.user,
                 };
 
                 if (serverQueue.addSong(song, interaction, playlist))
@@ -187,6 +188,7 @@ module.exports = {
             title: '',
             url: '',
             duration: Infinity,
+            user: interaction.user,
         };
 
         try
@@ -245,6 +247,7 @@ module.exports = {
                 {
                     // interaction.client.logger.debug('Duration in seconds: ', info.videoDetails.lengthSeconds);
                     song.duration = info.videoDetails.lengthSeconds;
+                    return true;
                 })
                 .catch(error =>
                 {
@@ -275,15 +278,111 @@ module.exports = {
             }
             interaction.client.logger.error(error);
         }
-
-        // TODO do something
     },
     async youtubeSongSearch(interaction, options)
     {
-        // TODO do something
-        const embed = baseEmbed.get(interaction.client)
-            .setDescription('This feature is not yet implemented');
-        interaction.editReply({ embeds: [embed], ephemeral: true });
+        const serverQueue = await getServerQueue(interaction);
+        // If there still is no serverQueue; exit
+        // This can be the case when the user isn't in a voice channel
+        //   or the bot can't join their channel
+        if (!serverQueue) return;
+        interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription(`Trying to add ${options.value}`)] });
+
+        const song =
+        {
+            title: '',
+            url: '',
+            duration: Infinity,
+            user: interaction.user,
+        };
+
+        try
+        {
+            let filters = undefined;
+            try
+            {
+                filters = await ytsr.getFilters(options.value, { requestOptions:
+                    {
+                        headers:
+                        {
+                            'Cookies': `SID=${interaction.client.config.SID}; HSID=${interaction.client.config.HSID}; SSID=${interaction.client.config.SSID}; SIDCC=${interaction.client.config.SIDCC};`,
+                            'x-youtube-identity-token': `${interaction.client.config.xyoutubeidentitytoken}`,
+                        },
+                    },
+                });
+            }
+            catch (error)
+            {
+                const embed = baseEmbed.get(interaction.client)
+                    .setDescription(`Some error happened, status code ${error.statusCode}. Should be fixed shortly`);
+                if (interaction.deferred || interaction.replied)
+                {
+                    interaction.editReply({ embeds: [embed.data], ephemeral: true });
+                }
+                else
+                {
+                    interaction.reply({ embeds: [embed.data], ephemeral: true });
+                }
+                interaction.client.logger.error(error);
+            }
+            const filterVideo = filters.get('Type').get('Video');
+            if (filterVideo.url === undefined || filterVideo.url === null)
+            {
+                return interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription(`Could not find ${options.value}`)] });
+            }
+            const results = await ytsr(filterVideo.url, { pages: 1, requestOptions:
+                {
+                    headers:
+                    {
+                        'Cookies': `SID=${interaction.client.config.SID}; HSID=${interaction.client.config.HSID}; SSID=${interaction.client.config.SSID}; SIDCC=${interaction.client.config.SIDCC};`,
+                        'x-youtube-identity-token': `${interaction.client.config.xyoutubeidentitytoken}`,
+                    },
+                },
+            });
+            if (results?.items?.length === 0)
+            {
+                return interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription(`Could not find ${options.value}`)] });
+
+            }
+
+            song.title = results.items[0].title;
+            song.url = results.items[0].url;
+            const b = await ytdl.getInfo(song.url)
+                .then((info) =>
+                {
+                    // interaction.client.logger.debug('Duration in seconds: ', info.videoDetails.lengthSeconds);
+                    song.duration = info.videoDetails.lengthSeconds;
+                    return true;
+                })
+                .catch(error =>
+                {
+                    // interaction.client.logger.debug(error);
+                    return false;
+                });
+
+            if (!b)
+            {
+                return interaction.editReply({ embeds: [
+                    baseEmbed.get(interaction.client)
+                        .setDescription('Couldn\'t find any video with that search term.'),
+                ] });
+            }
+            serverQueue.addSong(song, interaction);
+        }
+        catch (error)
+        {
+            const embed = baseEmbed.get(interaction.client)
+                .setDescription('Something went wrong, try again later');
+            if (interaction.deferred || interaction.replied)
+            {
+                interaction.editReply({ embeds: [embed.data], ephemeral: true });
+            }
+            else
+            {
+                interaction.reply({ embeds: [embed.data], ephemeral: true });
+            }
+            interaction.client.logger.error(error);
+        }
     },
     async spotifySongURL(interaction, options)
     {
