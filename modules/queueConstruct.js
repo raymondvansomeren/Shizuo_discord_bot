@@ -95,7 +95,7 @@ module.exports = {
         {
             this.songs = songs;
         }
-        addSong(song, interaction = undefined)
+        addSong(song, interaction = undefined, playlist = false)
         {
             this.songs.push(song);
             this.interaction.client.queue.set(this.interaction.guild.id, this);
@@ -117,6 +117,7 @@ module.exports = {
                     ] });
                     // Calling the play function to start a song
                     play(this.interaction, this.getSongs(0));
+                    return true;
                 }
                 catch (error)
                 {
@@ -134,16 +135,22 @@ module.exports = {
                         this.interaction.reply({ embeds: [embed.data], ephemeral: true });
                     }
                     this.interaction.client.logger.error(error);
+                    return false;
                 }
             }
             else if (interaction !== undefined
                     && this.songs.length > 1)
             {
-                interaction.editReply({ embeds: [
-                    baseEmbed.get(this.interaction.client)
-                        .setDescription(`Added **[${song.title}](${song.url})** to the queue`),
-                ] });
+                if (!playlist)
+                {
+                    interaction.editReply({ embeds: [
+                        baseEmbed.get(this.interaction.client)
+                            .setDescription(`Added **[${song.title}](${song.url})** to the queue`),
+                    ] });
+                }
+                return true;
             }
+            return false;
         }
 
         getVolume()

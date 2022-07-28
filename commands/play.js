@@ -5,6 +5,7 @@ const { queueObject } = require('../modules/queueConstruct.js');
 
 const ytdl = require('ytdl-core');
 const ytsr = require('ytsr');
+const ytpl = require('ytpl');
 
 module.exports = {
     name: 'play',
@@ -87,10 +88,90 @@ module.exports = {
     },
     async youtubePlaylistURL(interaction, options)
     {
-        // TODO do something
-        const embed = baseEmbed.get(interaction.client)
-            .setDescription('This feature is not yet implemented');
-        interaction.editReply({ embeds: [embed], ephemeral: true });
+        const serverQueue = await getServerQueue(interaction);
+        // If there still is no serverQueue; exit
+        // This can be the case when the user isn't in a voice channel
+        //   or the bot can't join their channel
+        if (!serverQueue) return;
+        interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription(`Trying to add ${options.value}`)] });
+
+        let added = 0;
+        let notAdded = 0;
+        let playlist = undefined;
+
+        try
+        {
+            playlist = await ytpl(options.value, { limit: Infinity, requestOptions:
+                {
+                    headers:
+                    {
+                        'Cookie': `SID=${interaction.client.config.SID}; HSID=${interaction.client.config.xHSID}; SSID=${interaction.client.config.xSSID}; SIDCC=${interaction.client.config.xSIDCC};`,
+                        'x-youtube-identity-token': `${interaction.client.config.xyoutubeidentitytoken}`,
+                    },
+                },
+            })
+                .catch(error =>
+                {
+                    return undefined;
+                });
+
+            if (!playlist || playlist === undefined || playlist === null)
+            {
+                return interaction.editReply({ embeds: [
+                    baseEmbed.get(interaction.client)
+                        .setDescription('Couldn\'t find that URL. Make sure to fill in an URL to a public/unlisted YouTube playlist'),
+                ] });
+            }
+
+            for (let i = 0; i < playlist.items.length; i++)
+            {
+                const song =
+                {
+                    title: playlist.items[i]?.title,
+                    url: playlist.items[i]?.shortUrl,
+                    duration: playlist.items[i]?.durationSec ?? Infinity,
+                };
+
+                if (serverQueue.addSong(song, interaction, playlist))
+                {
+                    added++;
+                }
+                else
+                {
+                    notAdded++;
+                }
+            }
+            if (notAdded === 0)
+            {
+                interaction.editReply({ embeds: [
+                    baseEmbed.get(interaction.client)
+                        .setDescription(`Added ${added} songs.`),
+                ] });
+            }
+            else
+            {
+                interaction.editReply({ embeds: [
+                    baseEmbed.get(interaction.client)
+                        .setDescription(`Added ${added} songs. Couldn't add ${notAdded} songs.`),
+                ] });
+            }
+        }
+        catch (e)
+        {
+            interaction.client.logger.error(e);
+            if (e.statusCode >= 400)
+            {
+                return interaction.editReply({ embeds: [
+                    baseEmbed.get(interaction.client)
+                        .setDescription(`Some error happened, status code ${e.statusCode}. Should be fixed shortly`),
+                ] });
+            }
+
+            return interaction.editReply({ embeds: [
+                baseEmbed.get(interaction.client)
+                    .setDescription('Some error happened'),
+            ] });
+        }
     },
     async youtubeSongURL(interaction, options)
     {
@@ -159,13 +240,25 @@ module.exports = {
 
             song.title = results.items[0].title;
             song.url = options.value;
-            await ytdl.getInfo(song.url)
+            const b = await ytdl.getInfo(song.url)
                 .then((info) =>
                 {
                     // interaction.client.logger.debug('Duration in seconds: ', info.videoDetails.lengthSeconds);
                     song.duration = info.videoDetails.lengthSeconds;
+                })
+                .catch(error =>
+                {
+                    // interaction.client.logger.debug(error);
+                    return false;
                 });
 
+            if (!b)
+            {
+                return interaction.editReply({ embeds: [
+                    baseEmbed.get(interaction.client)
+                        .setDescription('Couldn\'t find that URL. Make sure to fill in an URL to a YouTube video'),
+                ] });
+            }
             serverQueue.addSong(song, interaction);
         }
         catch (error)
