@@ -121,7 +121,8 @@ module.exports = {
                             .setDescription(`Now playing **[${song.title}](${song.url})**`)
                             .addFields([
                                 { name: 'Duration', value: `${moment.duration(song.duration, 'seconds').format('h:mm:ss').padStart(4, '0:0')} minutes`, inline: true },
-                            ]),
+                            ])
+                            .setThumbnail(song.thumbnail),
                     ] });
                     // Calling the play function to start a song
                     play(this.interaction, this.getSongs(0));
@@ -156,7 +157,8 @@ module.exports = {
                             .setDescription(`Added **[${song.title}](${song.url})** to the queue`)
                             .addFields([
                                 { name: 'Duration', value: `${moment.duration(song.duration, 'seconds').format('h:mm:ss').padStart(4, '0:0')} minutes`, inline: true },
-                            ]),
+                            ])
+                            .setThumbnail(song.thumbnail),
                     ] });
                 }
                 return true;

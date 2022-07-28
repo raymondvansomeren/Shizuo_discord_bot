@@ -171,7 +171,8 @@ module.exports = {
                 .addFields([
                     { name: 'Duration', value: `${moment.duration(song.duration, 'seconds').format('h:mm:ss').padStart(4, '0:0')} minutes`, inline: true },
                     { name: 'Added by', value: `${song.user}`, inline: true },
-                ]),
+                ])
+                .setThumbnail(song.thumbnail),
         ] }));
     },
 };

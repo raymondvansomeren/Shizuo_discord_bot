@@ -39,7 +39,8 @@ module.exports = {
             {
                 switch (subcommand.name)
                 {
-                case 'youtube_url':
+                // youtube_url
+                case 'url':
                 {
                     this.youtubePlaylistURL(interaction, options);
                     break;
@@ -51,16 +52,19 @@ module.exports = {
             {
                 switch (subcommand.name)
                 {
-                case 'youtube_url':
+                // youtube_url
+                case 'url':
                 {
                     this.youtubeSongURL(interaction, options);
                     break;
                 }
-                case 'youtube_search':
+                // youtube_search
+                case 'search':
                 {
                     this.youtubeSongSearch(interaction, options);
                     break;
                 }
+                // spotify_url
                 case 'spotify_url':
                 {
                     this.spotifySongURL(interaction, options);
@@ -93,7 +97,7 @@ module.exports = {
         // This can be the case when the user isn't in a voice channel
         //   or the bot can't join their channel
         if (!serverQueue) return;
-        interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription(`Trying to add ${options.value}`)] });
+        interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription(`Trying to add **${options.value}**`)] });
 
         let added = 0;
         let notAdded = 0;
@@ -131,6 +135,7 @@ module.exports = {
                     url: playlist.items[i]?.shortUrl,
                     duration: playlist.items[i]?.durationSec ?? Infinity,
                     user: interaction.user,
+                    thumbnail: playlist.items[i].bestThumbnail ?? undefined,
                 };
 
                 if (serverQueue.addSong(song, interaction, playlist))
@@ -181,7 +186,7 @@ module.exports = {
         // This can be the case when the user isn't in a voice channel
         //   or the bot can't join their channel
         if (!serverQueue) return;
-        interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription(`Trying to add ${options.value}`)] });
+        interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription(`Trying to add **${options.value}**`)] });
 
         const song =
         {
@@ -189,6 +194,7 @@ module.exports = {
             url: '',
             duration: Infinity,
             user: interaction.user,
+            thumbnail: undefined,
         };
 
         try
@@ -239,6 +245,8 @@ module.exports = {
                 return interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription(`Could not find ${options.value}`)] });
 
             }
+
+            song.thumbnail = results.items[0].bestThumbnail?.url;
 
             song.title = results.items[0].title;
             song.url = options.value;
@@ -286,7 +294,7 @@ module.exports = {
         // This can be the case when the user isn't in a voice channel
         //   or the bot can't join their channel
         if (!serverQueue) return;
-        interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription(`Trying to add ${options.value}`)] });
+        interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription(`Trying to add **${options.value}**`)] });
 
         const song =
         {
@@ -294,6 +302,7 @@ module.exports = {
             url: '',
             duration: Infinity,
             user: interaction.user,
+            thumbnail: undefined,
         };
 
         try
@@ -344,6 +353,8 @@ module.exports = {
                 return interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription(`Could not find ${options.value}`)] });
 
             }
+
+            song.thumbnail = results.items[0].bestThumbnail.url;
 
             song.title = results.items[0].title;
             song.url = results.items[0].url;
@@ -398,7 +409,8 @@ module.exports = {
                 group.setName('playlist')
                     .setDescription('something')
                     .addSubcommand(subcommand =>
-                        subcommand.setName('youtube_url')
+                        // 'youtube_url'
+                        subcommand.setName('url')
                             .setDescription('Add a whole playlist by URL')
                             .addStringOption(option =>
                                 option.setName('url')
@@ -408,21 +420,23 @@ module.exports = {
                 group.setName('song')
                     .setDescription('something')
                     .addSubcommand(subcommand =>
-                        subcommand.setName('youtube_url')
+                        // 'youtube_url
+                        subcommand.setName('url')
                             .setDescription('Add a single song by URL')
                             .addStringOption(option =>
                                 option.setName('url')
                                     .setDescription('The URL of the song')
                                     .setRequired(true)))
+                    // .addSubcommand(subcommand =>
+                    //     subcommand.setName('spotify_url')
+                    //         .setDescription('Add a single song by spotify URL')
+                    //         .addStringOption(option =>
+                    //             option.setName('url')
+                    //                 .setDescription('The URL of the song')
+                    //                 .setRequired(true)))
                     .addSubcommand(subcommand =>
-                        subcommand.setName('spotify_url')
-                            .setDescription('Add a single song by spotify URL')
-                            .addStringOption(option =>
-                                option.setName('url')
-                                    .setDescription('The URL of the song')
-                                    .setRequired(true)))
-                    .addSubcommand(subcommand =>
-                        subcommand.setName('youtube_search')
+                        // 'youtube_search'
+                        subcommand.setName('search')
                             .setDescription('Add a single song by a search query')
                             .addStringOption(option =>
                                 option.setName('query')
