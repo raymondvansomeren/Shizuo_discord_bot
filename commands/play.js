@@ -135,7 +135,7 @@ module.exports = {
                     url: playlist.items[i]?.shortUrl,
                     duration: playlist.items[i]?.durationSec ?? Infinity,
                     user: interaction.user,
-                    thumbnail: playlist.items[i].bestThumbnail ?? undefined,
+                    thumbnail: playlist.items[i].bestThumbnail.url ?? undefined,
                 };
 
                 if (serverQueue.addSong(song, interaction, playlist))
