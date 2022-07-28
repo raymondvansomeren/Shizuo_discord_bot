@@ -26,5 +26,19 @@
         "SIDCC": "",
         "xyoutubeidentitytoken": "",
         "cookies": ""
+    },
+    "siteTokens": {
+        "topgg": {
+            "token": "xxxxx",
+            "url": "https://top.gg/api/bots/10101010101010/stats"
+        },
+        "discordbotsgg": {
+            "token": "xxxxx",
+            "url": "https://discord.bots.gg/api/v1/bots/10101010101010/stats"
+        },
+        "discordbotlist": {
+            "token": "xxxxx",
+            "url": "https://discordbotlist.com/api/v1/bots/10101010101010/stats"
+        }
     }
 }
