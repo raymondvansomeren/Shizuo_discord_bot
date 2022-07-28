@@ -2,10 +2,8 @@ const fs = require('fs');
 
 // const { Client, Collection } = require('discord.js');
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
-// const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js');
-// const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
 client.commands = new Collection();
 client.config = require('./config.json');
 
@@ -13,6 +11,8 @@ const logger = require('log4js').getLogger();
 logger.level = client.config.logLevel;
 
 client.logger = logger;
+
+client.queue = new Collection();
 
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 for (const file of commandFiles)
@@ -43,6 +43,7 @@ client.on('interactionCreate', async interaction =>
 client.once('ready', () =>
 {
     require('./deploy-commands.js');
+
     client.logger.info('Fully started!');
 });
 
@@ -57,7 +58,7 @@ client.login(client.config.token);
 process.on('SIGUSR1', () =>
 {
     // This is where we will reload all commands!
-    client.logger.debug('Reloading commands/config (no reload of token)!');
+    client.logger.info('Reloading commands/config (no reload of token)!');
 
     delete require.cache[require.resolve('./config.json')];
     client.config = require('./config.json');
@@ -78,5 +79,5 @@ process.on('SIGUSR1', () =>
         client.commands.set(command.name, command);
     }
 
-    client.logger.debug('Done reloading commands/config (no reload of token)!');
+    client.logger.info('Done reloading commands/config (no reload of token)!');
 });

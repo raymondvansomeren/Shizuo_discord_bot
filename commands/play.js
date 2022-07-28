@@ -1,6 +1,8 @@
 const baseCommand = require('../modules/base-command.js');
 const baseEmbed = require('../modules/base-embed.js');
 
+const { queueObject } = require('../modules/queueConstruct.js');
+
 const ytdl = require('ytdl-core');
 const ytsr = require('ytsr');
 
@@ -38,7 +40,6 @@ module.exports = {
                 {
                 case 'youtube_url':
                 {
-                    // interaction.client.logger.debug(`playlist url ${options.value}`);
                     this.youtubePlaylistURL(interaction, options);
                     break;
                 }
@@ -51,19 +52,16 @@ module.exports = {
                 {
                 case 'youtube_url':
                 {
-                    // interaction.client.logger.debug(`song url youtube ${options.value}`);
                     this.youtubeSongURL(interaction, options);
                     break;
                 }
                 case 'youtube_search':
                 {
-                    // interaction.client.logger.debug(`song search youtube ${options.value}`);
                     this.youtubeSongSearch(interaction, options);
                     break;
                 }
                 case 'spotify_url':
                 {
-                    // interaction.client.logger.debug(`song url spotify ${options.value}`);
                     this.spotifySongURL(interaction, options);
                     break;
                 }
@@ -96,10 +94,96 @@ module.exports = {
     },
     async youtubeSongURL(interaction, options)
     {
+        const serverQueue = await getServerQueue(interaction);
+        // If there still is no serverQueue; exit
+        // This can be the case when the user isn't in a voice channel
+        //   or the bot can't join their channel
+        if (!serverQueue) return;
+        interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription(`Trying to add ${options.value}`)] });
+
+        const song =
+        {
+            title: '',
+            url: '',
+            duration: Infinity,
+        };
+
+        try
+        {
+            let filters = undefined;
+            try
+            {
+                filters = await ytsr.getFilters(options.value, { requestOptions:
+                    {
+                        headers:
+                        {
+                            'Cookies': `SID=${interaction.client.config.SID}; HSID=${interaction.client.config.HSID}; SSID=${interaction.client.config.SSID}; SIDCC=${interaction.client.config.SIDCC};`,
+                            'x-youtube-identity-token': `${interaction.client.config.xyoutubeidentitytoken}`,
+                        },
+                    },
+                });
+            }
+            catch (error)
+            {
+                const embed = baseEmbed.get(interaction.client)
+                    .setDescription(`Some error happened, status code ${error.statusCode}. Should be fixed shortly`);
+                if (interaction.deferred || interaction.replied)
+                {
+                    interaction.editReply({ embeds: [embed.data], ephemeral: true });
+                }
+                else
+                {
+                    interaction.reply({ embeds: [embed.data], ephemeral: true });
+                }
+                interaction.client.logger.error(error);
+            }
+            const filterVideo = filters.get('Type').get('Video');
+            if (filterVideo.url === undefined || filterVideo.url === null)
+            {
+                return interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription(`Could not find ${options.value}`)] });
+            }
+            const results = await ytsr(filterVideo.url, { pages: 1, requestOptions:
+                {
+                    headers:
+                    {
+                        'Cookies': `SID=${interaction.client.config.SID}; HSID=${interaction.client.config.HSID}; SSID=${interaction.client.config.SSID}; SIDCC=${interaction.client.config.SIDCC};`,
+                        'x-youtube-identity-token': `${interaction.client.config.xyoutubeidentitytoken}`,
+                    },
+                },
+            });
+            if (results?.items?.length === 0)
+            {
+                return interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription(`Could not find ${options.value}`)] });
+
+            }
+
+            song.title = results.items[0].title;
+            song.url = options.value;
+            await ytdl.getInfo(song.url)
+                .then((info) =>
+                {
+                    // interaction.client.logger.debug('Duration in seconds: ', info.videoDetails.lengthSeconds);
+                    song.duration = info.videoDetails.lengthSeconds;
+                });
+
+            serverQueue.addSong(song, interaction);
+        }
+        catch (error)
+        {
+            const embed = baseEmbed.get(interaction.client)
+                .setDescription('Something went wrong, try again later');
+            if (interaction.deferred || interaction.replied)
+            {
+                interaction.editReply({ embeds: [embed.data], ephemeral: true });
+            }
+            else
+            {
+                interaction.reply({ embeds: [embed.data], ephemeral: true });
+            }
+            interaction.client.logger.error(error);
+        }
+
         // TODO do something
-        const embed = baseEmbed.get(interaction.client)
-            .setDescription('This feature is not yet implemented');
-        interaction.editReply({ embeds: [embed], ephemeral: true });
     },
     async youtubeSongSearch(interaction, options)
     {
@@ -154,3 +238,23 @@ module.exports = {
                                     .setRequired(true))));
     },
 };
+
+async function getServerQueue(interaction)
+{
+    const serverQueue = interaction.client.queue.get(interaction.guild.id);
+    if (!serverQueue)
+    {
+        const embed = baseEmbed.get(interaction.client)
+            .setDescription('Trying to join you in a voice channel');
+
+        await interaction.editReply({ embeds: [embed], ephemeral: false });
+        // const message = await interaction.channel.send({ embeds: [embed], ephemeral: false });
+        const q = new queueObject(interaction, undefined);
+        if (!q.getVoiceChannel()?.joinable)
+        {
+            return undefined;
+        }
+        return q;
+    }
+    return serverQueue;
+}
