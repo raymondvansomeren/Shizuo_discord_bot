@@ -1,29 +1,14 @@
-const log = require('../modules/log').log;
-const error = require('../modules/log').error;
+const updateSites = require('../modules/updateSites').execute;
 
 module.exports = {
     name: 'ready',
     once: true,
     execute(client)
     {
-        // updateSites(client);
+        updateSites(client);
 
-        client.connection.get('db').query('SELECT Guild, Prefix, ModPrefix FROM guildsettings;',
-            function(e, results)
-            {
-                if (e)
-                {
-                    return error(e);
-                }
+        require('../deploy-commands.js');
 
-                results.forEach(function(r)
-                {
-                    client.prefixes.set(r.Guild, r.Prefix);
-                    client.modPrefixes.set(r.Guild, r.ModPrefix);
-                });
-            });
-
-        log('Ready!');
         client.user.setPresence({
             status: 'online',
             activity: {
@@ -32,5 +17,6 @@ module.exports = {
                 type: 'WATCHING',
             },
         });
+        client.logger.info('Fully started!');
     },
 };

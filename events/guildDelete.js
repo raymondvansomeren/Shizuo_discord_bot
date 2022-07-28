@@ -1,20 +1,18 @@
-const log = require('../modules/log').log;
-// const error = require('../modules/log').error;
+const { logLevel } = require('../config.json');
+const logger = require('log4js').getLogger();
+logger.level = logLevel;
 
 const updateSites = require('../modules/updateSites').execute;
 
 module.exports = {
     name: 'guildDelete',
     once: false,
-    execute(client, guild)
+    execute(guild)
     {
-        if (client === undefined || client.user === undefined || client.connection === undefined || guild === undefined)
-        {
-            return;
-        }
-        log(`Left a server! (${guild.name})`);
+        const client = guild.client;
+        logger.info(`Left a server! (${guild.name})`);
 
-        updateSites(client);
+        updateSites(guild.client);
 
         client.user.setPresence({
             status: 'online',

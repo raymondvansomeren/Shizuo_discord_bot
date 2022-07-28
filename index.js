@@ -1,4 +1,5 @@
-const fs = require('fs');
+const fs = require('node:fs');
+const path = require('node:path');
 
 // const { Client, Collection } = require('discord.js');
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
@@ -22,32 +23,6 @@ for (const file of commandFiles)
     // with the key as the command name and the value as the exported module
     client.commands.set(command.name, command);
 }
-
-client.on('interactionCreate', async interaction =>
-{
-    if (interaction.type != 2) return;
-
-    if (!client.commands.has(interaction.commandName)) return;
-
-    try
-    {
-        await client.commands.get(interaction.commandName).execute(interaction);
-    }
-    catch (error)
-    {
-        client.logger.error(error);
-        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-    }
-});
-
-client.once('ready', () =>
-{
-    require('./deploy-commands.js');
-
-    client.logger.info('Fully started!');
-});
-
-client.login(client.config.token);
 
 /**
  * When receiving a SIGUSR1 (htop 10):
@@ -81,3 +56,39 @@ process.on('SIGUSR1', () =>
 
     client.logger.info('Done reloading commands/config (no reload of token)!');
 });
+
+// Get amount of listening servers
+process.on('SIGUSR2', () =>
+{
+    // Something
+    client.logger.info(`Currently ${client.queue.size} queues`);
+});
+
+// Event handling (start at 4 seconds)
+// TODO add handling for when 2 seconds ain't enough
+setTimeout(() =>
+{
+    client.logger.info('Loading DJS client eventhandlers.');
+    const eventsPath = path.join(__dirname, 'events');
+    const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
+
+    for (const file of eventFiles)
+    {
+        const filePath = path.join(eventsPath, file);
+        const event = require(filePath);
+        client.logger.info(`Event ${event.name} loaded!`);
+        if (event.once)
+        {
+            client.once(event.name, (...args) => event.execute(...args));
+        }
+        else
+        {
+            client.on(event.name, (...args) => event.execute(...args));
+        }
+    }
+}, 1000);
+
+setTimeout(() =>
+{
+    client.login(client.config.token);
+}, 3000);
