@@ -1,10 +1,12 @@
 const axios = require('axios');
-const { siteTokens } = require('../config.json');
+const { siteTokens, inDevelopment } = require('../config.json');
 
 module.exports = {
     name: 'updateSites',
     execute(client)
     {
+        if (inDevelopment) return;
+
         const guilds = client.guilds?.cache?.size;
 
         const topgg = siteTokens.topgg.token;
@@ -19,15 +21,15 @@ module.exports = {
                 },
             });
 
-        const discordbotsgg = siteTokens.discordbotsgg.token;
-        axios.post(siteTokens.discordbotsgg.url,
+        const discord_bots_gg = siteTokens.discord_bots_gg.token;
+        axios.post(siteTokens.discord_bots_gg.url,
             {
                 guildCount: guilds,
             },
             {
                 headers:
                 {
-                    'Authorization': `${discordbotsgg}`,
+                    'Authorization': `${discord_bots_gg}`,
                 },
             });
 
@@ -42,5 +44,20 @@ module.exports = {
                     'Authorization': `${discordbotlist}`,
                 },
             });
+
+        // const discordbots_gg = siteTokens.discordbots_gg.token;
+        // axios.post(siteTokens.discordbots_gg.url,
+        //     {
+        //         '': `${guilds}`,
+        //     },
+        //     {
+        //         headers:
+        //         {
+        //             'Authorization': `${discordbots_gg}`,
+        //         },
+        //     });
     },
 };
+
+
+module.exports.execute('something');
