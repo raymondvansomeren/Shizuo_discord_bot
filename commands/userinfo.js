@@ -45,15 +45,15 @@ module.exports = {
 
             // Fill the embed with userdata
             embed
-                .setTitle(`Info about user ${interaction.user.username}`)
+                .setTitle(`Info about user ${member.user.username}`)
                 .setFields([
                     { name: 'User', value: `<@${member.user.id}>`, inline: true },
-                    { name: 'Created at', value: `${new Date(member.user.createdTimestamp)}`, inline: true },
-                    { name: 'Joined at', value: `${new Date(member.joinedTimestamp)}`, inline: true },
+                    { name: 'Created at', value: `<t:${Math.round(member.user.createdTimestamp / 1000)}:F>`, inline: true },
+                    { name: 'Joined at', value: `<t:${Math.round(member.joinedTimestamp / 1000)}:F>`, inline: true },
                     { name: 'ID', value: `${member.id}`, inline: true },
-                    { name: 'Avatar', value: `<${interaction.user.displayAvatarURL({ format: 'png', dynamic: true })}>`, inline: false },
+                    { name: 'Avatar', value: `<${member.user.displayAvatarURL({ format: 'png', dynamic: true })}>`, inline: false },
                 ])
-                .setImage(`${interaction.user.displayAvatarURL({ format: 'png', dynamic: true })}`);
+                .setImage(`${member.user.displayAvatarURL({ format: 'png', dynamic: true })}`);
 
             // Only add roles to the fields if the user has some roles
             if (member._roles.length > 0)

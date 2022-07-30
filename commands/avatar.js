@@ -8,6 +8,7 @@ module.exports = {
     {
         try
         {
+            await interaction.deferReply({ ephemeral: true });
             // interaction.type 2 is ApplicationCommand: https://discord-api-types.dev/api/discord-api-types-v10/enum/InteractionType
             if (interaction.type !== 2)
             {
@@ -46,7 +47,7 @@ module.exports = {
                 }
             }
 
-            interaction.reply({ embeds: [embed.data], ephemeral: false });
+            interaction.editReply({ embeds: [embed.data], ephemeral: true });
         }
         catch (error)
         {

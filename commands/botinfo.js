@@ -12,17 +12,18 @@ module.exports =
     {
         try
         {
+            await interaction.deferReply({ ephemeral: false });
             const botembed = baseEmbed.get(interaction.client)
                 .setTitle('Bot Information')
                 .setFields([
                     { name: 'Bot Name', value: `${interaction.client.user.username}` },
-                    { name: 'Created On', value: `${interaction.client.user.createdAt}` },
+                    { name: 'Created On', value: `<t:${Math.round(interaction.client.user.createdAt.valueOf() / 1000)}:F>` },
                     { name: 'Server amount', value: `${interaction.client.guilds.cache.size}` },
                     { name: 'Users', value: 'Unknown' },
                 ])
                 .setFooter({ text: 'Bot created by raymond570#2966', iconURL: `${interaction.client.users.cache.get('270871921137025024').displayAvatarURL({ format: 'png', dynamic: true })}` });
 
-            await interaction.reply({ embeds: [botembed], ephemeral: false });
+            await interaction.editReply({ embeds: [botembed], ephemeral: false });
 
             const rest = new REST({ version: '10' }).setToken(interaction.client.config.token);
 
@@ -45,7 +46,7 @@ module.exports =
             }
             botembed.setFields([
                 { name: 'Bot Name', value: `${interaction.client.user.username}` },
-                { name: 'Created On', value: `${interaction.client.user.createdAt}` },
+                { name: 'Created On', value: `<t:${Math.round(interaction.client.user.createdAt.valueOf() / 1000)}:F>` },
                 { name: 'Server amount', value: `${interaction.client.guilds.cache.size}` },
                 { name: 'Users', value: `${userCount}` },
             ]);
