@@ -25,8 +25,8 @@ module.exports = {
                     // Nothing
                 });
 
-            const indexOld = interaction.options?.data.find(element => element.name === 'index');
-            const indexNew = interaction.options?.data.find(element => element.name === 'new_index');
+            const indexOld = interaction.options?.data.find(element => element.name === 'index')?.value;
+            const indexNew = interaction.options?.data.find(element => element.name === 'new_index')?.value;
             if (indexOld === undefined || indexNew === undefined)
             {
                 return interaction.editReply({ embeds: [
@@ -61,8 +61,8 @@ module.exports = {
                 });
             // serverQueue?.stop();
             const songs = serverQueue.getSongs();
-            const temp = songs.splice(indexOld, 1);
-            songs.splice(indexNew, 0, temp);
+            songs.splice(indexOld, 1);
+            songs.splice(indexNew, 0, song);
             serverQueue.setSongs(songs);
         }
         else
