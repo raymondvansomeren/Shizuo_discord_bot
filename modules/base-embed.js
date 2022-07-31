@@ -7,6 +7,6 @@ module.exports = {
         return new EmbedBuilder()
             // .setThumbnail(client.user.displayAvatarURL())
             .setColor(client.config.color)
-            .setFooter({ text: `${client.user.username}`, iconURL: client.user.defaultAvatarURL });
+            .setAuthor({ name: `${client.user.username}`, iconURL: client.user.defaultAvatarURL });
     },
 };

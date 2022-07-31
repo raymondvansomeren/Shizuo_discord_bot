@@ -1,33 +1,76 @@
+// TODO add loop status to reply
+
+const baseCommand = require('../modules/base-command.js');
+const baseEmbed = require('../modules/base-embed.js');
+
+const { getVoiceConnection } = require('@discordjs/voice');
+
 const moment = require('moment');
 const momentDurationFormatSetup = require('moment-duration-format');
 
-module.exports =
-{
+module.exports = {
     name: 'nowplaying',
-    description: 'Shows the currently playing song',
-    aliases: ['playing', 'currentsong', 'np', 'cs'],
-    usage: '',
-    async execute(bot, message, args)
+    description: 'Shows which song is currently playing with extra info',
+    async execute(interaction)
     {
-        // To get rid of the eslint warning of unused vars
-        const falseVar = false;
-        if (falseVar === false)
-            momentDurationFormatSetup;
+        await interaction.deferReply({ ephemeral: true });
 
-        const serverQueue = bot.queue.get(message.guild.id);
-        if (!serverQueue)
+        if (interaction.member?.roles?.cache?.find(role => role.name.toLowerCase() === 'nomusic')
+        || interaction.member?.roles?.cache?.find(role => role.name.toLowerCase() === 'incapacitated'))
         {
-            return message.channel.send('I have no songs playing right now')
-                .then(msg =>
-                {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
-                });
+            return interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription('Seems like you aren\'t allowed to use the music features :confused:')], ephemeral: true });
         }
+        const serverQueue = interaction.client.queue.get(interaction.guild.id);
+        if (serverQueue
+            && getVoiceConnection(interaction.guild.id) !== undefined)
+        {
+            serverQueue.getSongs(0).remaining = parseInt(serverQueue.getSongs(0).duration - (serverQueue.getAudioResource().playbackDuration / 1000));
+            const song = serverQueue.getSongs(0);
 
-        message.channel.send(`Currently playing **${serverQueue.songs[0].title}**\nCurrently at **${moment.duration(serverQueue.connection.dispatcher.streamTime, 'milliseconds').format('h:mm:ss').padStart(4, '0:0')}/${moment.duration(serverQueue.songs[0].duration, 'seconds').format('h:mm:ss').padStart(4, '0:0')}**\n(${serverQueue.songs[0].url})`);
+            momentDurationFormatSetup;
+            const embed = baseEmbed.get(interaction.client)
+                .setDescription(`[${song?.title}](${song?.url})`)
+                .setFields([
+                    { name: 'Full duration', value: `${moment.duration(song.duration, 'seconds').format('h:mm:ss').padStart(4, '0:0')}`, inline: true },
+                    { name: 'Added by', value: `${song.user}`, inline: true },
+                    { name: 'Ends', value: `<t:${Math.round(Date.now() / 1000) + song.remaining}:R>`, inline: true },
+                    { name: 'Time since start', value: `${moment.duration(parseInt(serverQueue.getAudioResource().playbackDuration / 1000), 'seconds').format('h:mm:ss').padStart(4, '0:0')}`, inline: true },
+                ]);
+
+            if (song.thumbnail !== undefined)
+            {
+                embed.setThumbnail(song.thumbnail);
+            }
+            switch(serverQueue.getLoopState())
+            {
+            case 'none':
+            {
+                embed.addFields([{ name: 'Repeat?', value: ':arrow_forward: Not repeating any songs' }]);
+                break;
+            }
+            case 'single':
+            {
+                embed.addFields([{ name: 'Repeat?', value: ':repeat_one: Repeating current song' }]);
+                break;
+            }
+            case 'all':
+            {
+                embed.addFields([{ name: 'Repeat?', value: ':arrow_forward: Repeating the whole queue' }]);
+                break;
+            }
+            }
+            interaction.editReply({ embeds: [embed] });
+        }
+        else
+        {
+            interaction.editReply({ embeds: [
+                baseEmbed.get(interaction.client)
+                    .setDescription('I wasn\'t in a voice channel'),
+            ] });
+        }
+    },
+    getCommand()
+    {
+        return baseCommand.get(this);
     },
 };

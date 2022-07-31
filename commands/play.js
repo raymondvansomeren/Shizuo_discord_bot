@@ -31,7 +31,7 @@ module.exports = {
 
             const group = interaction.options?.data[0];
             const subcommand = group.options[0];
-            const options = subcommand.options[0];
+            const options = subcommand.options;
 
             switch(group.name)
             {
@@ -90,13 +90,15 @@ module.exports = {
             interaction.client.logger.error(error);
         }
     },
-    async youtubePlaylistURL(interaction, options)
+    async youtubePlaylistURL(interaction, op)
     {
         const serverQueue = await getServerQueue(interaction);
         // If there still is no serverQueue; exit
         // This can be the case when the user isn't in a voice channel
         //   or the bot can't join their channel
         if (!serverQueue) return;
+
+        const options = op.find(element => element.name === 'url');
         interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription(`Trying to add **${options.value}**`)] });
 
         let added = 0;
@@ -127,15 +129,28 @@ module.exports = {
                 ] });
             }
 
+            if (op.find(element => element.name === 'shuffled')?.value)
+            {
+                for (let i = 0; i < playlist.items.length; i++)
+                {
+                    const randomIndex = Math.floor(Math.random() * playlist.items.length);
+
+                    const temporaryValue = playlist.items[i];
+                    playlist.items[i] = playlist.items[randomIndex];
+                    playlist.items[randomIndex] = temporaryValue;
+                }
+            }
+
             for (let i = 0; i < playlist.items.length; i++)
             {
                 const song =
                 {
                     title: playlist.items[i]?.title,
                     url: playlist.items[i]?.shortUrl,
-                    duration: playlist.items[i]?.durationSec ?? Infinity,
+                    duration: parseInt(playlist.items[i]?.durationSec) ?? Infinity,
                     user: interaction.user,
                     thumbnail: playlist.items[i].bestThumbnail.url ?? undefined,
+                    remaining: playlist.items[i].durationSec ?? Infinity,
                 };
 
                 if (serverQueue.addSong(song, interaction, playlist))
@@ -179,13 +194,15 @@ module.exports = {
             ] });
         }
     },
-    async youtubeSongURL(interaction, options)
+    async youtubeSongURL(interaction, op)
     {
         const serverQueue = await getServerQueue(interaction);
         // If there still is no serverQueue; exit
         // This can be the case when the user isn't in a voice channel
         //   or the bot can't join their channel
         if (!serverQueue) return;
+
+        const options = op.find(element => element.name === 'url');
         interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription(`Trying to add **${options.value}**`)] });
 
         const song =
@@ -195,6 +212,7 @@ module.exports = {
             duration: Infinity,
             user: interaction.user,
             thumbnail: undefined,
+            remaining: Infinity,
         };
 
         try
@@ -247,14 +265,14 @@ module.exports = {
             }
 
             song.thumbnail = results.items[0].bestThumbnail?.url;
-
             song.title = results.items[0].title;
             song.url = options.value;
             const b = await ytdl.getInfo(song.url)
                 .then((info) =>
                 {
                     // interaction.client.logger.debug('Duration in seconds: ', info.videoDetails.lengthSeconds);
-                    song.duration = info.videoDetails.lengthSeconds;
+                    song.duration = parseInt(info.videoDetails.lengthSeconds);
+                    song.remaining = song.duration;
                     return true;
                 })
                 .catch(error =>
@@ -287,13 +305,15 @@ module.exports = {
             interaction.client.logger.error(error);
         }
     },
-    async youtubeSongSearch(interaction, options)
+    async youtubeSongSearch(interaction, op)
     {
         const serverQueue = await getServerQueue(interaction);
         // If there still is no serverQueue; exit
         // This can be the case when the user isn't in a voice channel
         //   or the bot can't join their channel
         if (!serverQueue) return;
+
+        const options = op.find(element => element.name === 'query');
         interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription(`Trying to add **${options.value}**`)] });
 
         const song =
@@ -303,6 +323,7 @@ module.exports = {
             duration: Infinity,
             user: interaction.user,
             thumbnail: undefined,
+            remaining: Infinity,
         };
 
         try
@@ -355,14 +376,14 @@ module.exports = {
             }
 
             song.thumbnail = results.items[0].bestThumbnail.url;
-
             song.title = results.items[0].title;
             song.url = results.items[0].url;
             const b = await ytdl.getInfo(song.url)
                 .then((info) =>
                 {
                     // interaction.client.logger.debug('Duration in seconds: ', info.videoDetails.lengthSeconds);
-                    song.duration = info.videoDetails.lengthSeconds;
+                    song.duration = parseInt(info.videoDetails.lengthSeconds);
+                    song.remaining = song.duration;
                     return true;
                 })
                 .catch(error =>
@@ -395,9 +416,12 @@ module.exports = {
             interaction.client.logger.error(error);
         }
     },
-    async spotifySongURL(interaction, options)
+    async spotifySongURL(interaction, op)
     {
         // TODO do something
+
+        // const options = op.find(element => element.name === 'url');
+
         const embed = baseEmbed.get(interaction.client)
             .setDescription('This feature is not yet implemented');
         interaction.editReply({ embeds: [embed], ephemeral: true });
@@ -415,7 +439,11 @@ module.exports = {
                             .addStringOption(option =>
                                 option.setName('url')
                                     .setDescription('The URL of the playlist')
-                                    .setRequired(true))))
+                                    .setRequired(true))
+                            .addBooleanOption(option =>
+                                option.setName('shuffled')
+                                    .setDescription('Add playlist shuffled?')
+                                    .setRequired(false))))
             .addSubcommandGroup(group =>
                 group.setName('song')
                     .setDescription('something')

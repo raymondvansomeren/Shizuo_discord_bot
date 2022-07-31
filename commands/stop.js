@@ -1,45 +1,63 @@
-module.exports =
-{
+const baseCommand = require('../modules/base-command.js');
+const baseEmbed = require('../modules/base-embed.js');
+
+const { getVoiceConnection } = require('@discordjs/voice');
+
+module.exports = {
     name: 'stop',
-    description: 'Stop playing songs.',
-    aliases: ['fuckoff', 'quit', 'exit'],
-    usage: '',
-    async execute(bot, message, args)
+    description: 'Stops playing music and disconnects the bot',
+    async execute(interaction)
     {
-        if (message.member.roles.cache.find(role => role.name.toLowerCase() === 'nomusic') || message.member.roles.cache.find(role => role.name.toLowerCase() === 'incapacitated'))
+        await interaction.deferReply({ ephemeral: true });
+
+        if (interaction.member?.roles?.cache?.find(role => role.name.toLowerCase() === 'nomusic')
+        || interaction.member?.roles?.cache?.find(role => role.name.toLowerCase() === 'incapacitated'))
         {
-            return message.channel.send('Seems like you aren\'t allowed to use the music features :confused:')
+            return interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription('Seems like you aren\'t allowed to use the music features :confused:')], ephemeral: true });
+        }
+        const serverQueue = interaction.client.queue.get(interaction.guild.id);
+        // TODO can't find connection after restart
+        interaction.client.logger.debug(getVoiceConnection(interaction.guild.id));
+        if (serverQueue
+            || getVoiceConnection(interaction.guild.id) !== undefined)
+        {
+            serverQueue.getMessage()?.delete()
+                .catch(error =>
+                {
+                    // Nothing
+                });
+            interaction.editReply({ embeds: [
+                baseEmbed.get(interaction.client)
+                    .setDescription('Stopping the music and leaving the channel'),
+            ] });
+
+            interaction.channel.send({ embeds: [
+                baseEmbed.get(interaction.client)
+                    .setDescription(`${interaction.user} stopped the music`),
+            ] })
                 .then(msg =>
                 {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                    setTimeout(() =>
                     {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
+                        msg?.delete()
+                            .catch(error =>
+                            {
+                                // Nothing
+                            });
+                    }, 10000);
                 });
+            serverQueue?.stop();
         }
-
-        const serverQueue = bot.queue.get(message.guild.id);
-        if (!message.member.voice.channel)
+        else
         {
-            return message.channel.send('You have to be in a voice channel to stop the music!')
-                .then(msg =>
-                {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
-                });
+            interaction.editReply({ embeds: [
+                baseEmbed.get(interaction.client)
+                    .setDescription('I wasn\'t in a voice channel'),
+            ] });
         }
-
-        message.guild.me.voice.setChannel(null);
-        if (serverQueue)
-        {
-            serverQueue.songs = [];
-            serverQueue.connection.dispatcher.end();
-        }
-
-        message.channel.send('Disconnected from voice');
+    },
+    getCommand()
+    {
+        return baseCommand.get(this);
     },
 };

@@ -1,53 +1,71 @@
-module.exports =
-{
+const baseCommand = require('../modules/base-command.js');
+const baseEmbed = require('../modules/base-embed.js');
+
+const { getVoiceConnection } = require('@discordjs/voice');
+
+const moment = require('moment');
+const momentDurationFormatSetup = require('moment-duration-format');
+
+module.exports = {
     name: 'pause',
-    description: 'Pause the song.',
-    aliases: [''],
-    usage: '',
-    async execute(bot, message, args)
+    description: 'Pause the currently playing song/playlist',
+    async execute(interaction)
     {
-        if (message.member.roles.cache.find(role => role.name.toLowerCase() === 'nomusic') || message.member.roles.cache.find(role => role.name.toLowerCase() === 'incapacitated'))
+        await interaction.deferReply({ ephemeral: true });
+
+        if (interaction.member?.roles?.cache?.find(role => role.name.toLowerCase() === 'nomusic')
+        || interaction.member?.roles?.cache?.find(role => role.name.toLowerCase() === 'incapacitated'))
         {
-            return message.channel.send('Seems like you aren\'t allowed to use the music features :confused:')
-                .then(msg =>
-                {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
-                });
+            return interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription('Seems like you aren\'t allowed to use the music features :confused:')], ephemeral: true });
         }
-
-        const serverQueue = bot.queue.get(message.guild.id);
-        if (!message.member.voice.channel)
+        const serverQueue = interaction.client.queue.get(interaction.guild.id);
+        if (serverQueue
+            && getVoiceConnection(interaction.guild.id) !== undefined)
         {
-            return message.channel.send('You have to be in a voice channel to pause the music!')
-                .then(msg =>
+            await serverQueue.getMessage()?.delete()
+                .catch(error =>
                 {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
+                    // Nothing
                 });
-        }
+            interaction.editReply({ embeds: [
+                baseEmbed.get(interaction.client)
+                    .setDescription('Pausing the music'),
+            ] });
 
-        if (!serverQueue)
+            const embed = baseEmbed.get(interaction.client)
+                .setDescription(`${interaction.user} paused the music`)
+                .setFields([
+                    { name: 'Song', value: `[${serverQueue.getSongs(0)?.title}](${serverQueue.getSongs(0)?.url})` },
+                ]);
+
+            if (serverQueue.getSongs(0).thumbnail !== undefined)
+            {
+                embed.setThumbnail(serverQueue.getSongs(0).thumbnail);
+            }
+
+            if (serverQueue.getSongs(0).duration !== Infinity)
+            {
+                momentDurationFormatSetup;
+                serverQueue.getSongs(0).remaining = parseInt(serverQueue.getSongs(0).duration - (serverQueue.getAudioResource().playbackDuration / 1000));
+                embed.addFields([
+                    { name: 'Remaining time', value: `${moment.duration(serverQueue.getSongs(0).remaining, 'seconds').format('h:mm:ss').padStart(4, '0:0')} minutes` },
+                ]);
+            }
+
+            serverQueue.setMessage(await interaction.channel.send({ embeds: [embed] }));
+
+            serverQueue?.pause();
+        }
+        else
         {
-            return message.channel.send('There is no song that I could pause!')
-                .then(msg =>
-                {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
-                });
+            interaction.editReply({ embeds: [
+                baseEmbed.get(interaction.client)
+                    .setDescription('I wasn\'t in a voice channel'),
+            ] });
         }
-
-        serverQueue.connection.dispatcher.pause();
-
-        message.channel.send(`Paused song **${serverQueue.songs[0].title}\n(${serverQueue.songs[0].url})**`);
+    },
+    getCommand()
+    {
+        return baseCommand.get(this);
     },
 };

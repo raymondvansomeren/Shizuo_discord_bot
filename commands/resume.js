@@ -1,53 +1,65 @@
-module.exports =
-{
+const baseCommand = require('../modules/base-command.js');
+const baseEmbed = require('../modules/base-embed.js');
+
+const { getVoiceConnection } = require('@discordjs/voice');
+
+const moment = require('moment');
+const momentDurationFormatSetup = require('moment-duration-format');
+
+module.exports = {
     name: 'resume',
-    description: 'Resumes the song.',
-    aliases: [''],
-    usage: '',
-    async execute(bot, message, args)
+    description: 'Resume playing where paused',
+    async execute(interaction)
     {
-        if (message.member.roles.cache.find(role => role.name.toLowerCase() === 'nomusic') || message.member.roles.cache.find(role => role.name.toLowerCase() === 'incapacitated'))
+        await interaction.deferReply({ ephemeral: true });
+
+        if (interaction.member?.roles?.cache?.find(role => role.name.toLowerCase() === 'nomusic')
+        || interaction.member?.roles?.cache?.find(role => role.name.toLowerCase() === 'incapacitated'))
         {
-            return message.channel.send('Seems like you aren\'t allowed to use the music features :confused:')
-                .then(msg =>
-                {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
-                });
+            return interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription('Seems like you aren\'t allowed to use the music features :confused:')], ephemeral: true });
         }
-
-        const serverQueue = bot.queue.get(message.guild.id);
-        if (!message.member.voice.channel)
+        const serverQueue = interaction.client.queue.get(interaction.guild.id);
+        if (serverQueue
+            && getVoiceConnection(interaction.guild.id) !== undefined)
         {
-            return message.channel.send('You have to be in a voice channel to resume the music!')
-                .then(msg =>
+            await serverQueue.getMessage()?.delete()
+                .catch(error =>
                 {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
+                    // Nothing
                 });
-        }
+            interaction.editReply({ embeds: [
+                baseEmbed.get(interaction.client)
+                    .setDescription('Resuming the music'),
+            ] });
 
-        if (!serverQueue)
+            momentDurationFormatSetup;
+
+            const song = serverQueue.getSongs(0);
+            const embed = baseEmbed.get(interaction.client)
+                .setDescription(`${interaction.user} resumed the music`)
+                .setFields([
+                    { name: 'Song', value: `[${song?.title}](${song?.url})` },
+                    { name: 'Duration', value: `${moment.duration(song.duration, 'seconds').format('h:mm:ss').padStart(4, '0:0')}` },
+                    { name: 'Added by', value: `${song.user}` },
+                    { name: 'Ends', value: `<t:${Math.round(Date.now() / 1000) + song?.remaining}:R>` },
+                ]);
+            if (song.thumbnail !== undefined)
+            {
+                embed.setThumbnail(song.thumbnail);
+            }
+            serverQueue.setMessage(await interaction.channel.send({ embeds: [embed] }));
+            serverQueue?.play();
+        }
+        else
         {
-            return message.channel.send('There is no song that I could resume!')
-                .then(msg =>
-                {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
-                });
+            interaction.editReply({ embeds: [
+                baseEmbed.get(interaction.client)
+                    .setDescription('I wasn\'t in a voice channel'),
+            ] });
         }
-
-        serverQueue.connection.dispatcher.resume();
-
-        message.channel.send(`Resumed song **${serverQueue.songs[0].title}\n(${serverQueue.songs[0].url})**`);
+    },
+    getCommand()
+    {
+        return baseCommand.get(this);
     },
 };

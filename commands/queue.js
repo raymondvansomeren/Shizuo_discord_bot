@@ -1,87 +1,98 @@
+const baseEmbed = require('../modules/base-embed.js');
+const baseCommand = require('../modules/base-command.js');
+
+const { getVoiceConnection } = require('@discordjs/voice');
+
 const moment = require('moment');
 const momentDurationFormatSetup = require('moment-duration-format');
-const Discord = require('discord.js');
 
-module.exports =
-{
+module.exports = {
     name: 'queue',
-    description: 'Shows the current queue',
-    aliases: ['q', 'songs'],
-    usage: '[page (not required)]',
-    async execute(bot, message, args)
+    description: 'Lists the current queue',
+    async execute(interaction)
     {
-        // To get rid of the eslint warning of unused vars
-        const falseVar = false;
-        if (falseVar === false)
-            momentDurationFormatSetup;
-
-        const serverQueue = bot.queue.get(message.guild.id);
-        if (!serverQueue || serverQueue.songs.length === 1)
+        await interaction.deferReply({ ephemeral: true });
+        const serverQueue = interaction.client.queue.get(interaction.guild.id);
+        if (serverQueue !== undefined
+            && getVoiceConnection(interaction.guild.id) !== undefined)
         {
-            return message.channel.send('There are no songs in the queue')
-                .then(msg =>
-                {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
-                });
-        }
-
-        const embeddedQueue = new Discord.MessageEmbed();
-        embeddedQueue.setThumbnail(bot.user.avatarURL());
-        embeddedQueue.setColor('#DE8422');
-        embeddedQueue.setTitle('Music queue');
-
-        let queueTime = 0;
-        let extraText = '';
-        for (let i = 1; i < serverQueue.songs.length; i++)
-        {
-            if (serverQueue.songs[i].duration === Infinity)
+            const embed = baseEmbed.get(interaction.client);
+            if (serverQueue.getSongs().length > 1)
             {
-                extraText = 'over';
-                continue;
+                let queueTime = 0;
+                let extraText = '';
+                for (let i = 0; i < serverQueue.getSongs().length; i++)
+                {
+                    if (serverQueue.getSongs(i).duration === Infinity)
+                    {
+                        extraText = 'over';
+                        continue;
+                    }
+                    queueTime += parseInt(serverQueue.getSongs(i).duration);
+                }
+
+                momentDurationFormatSetup;
+                embed.setDescription(`Total queue time: ${extraText}${moment.duration(queueTime, 'seconds').format('h:mm:ss').padStart(4, '0:0')}`);
+
+                let page = 1;
+                const songsPerPage = 10;
+                const pageAmount = Math.ceil((serverQueue.getSongs().length - 1) / songsPerPage);
+
+                let options = interaction.options?.data;
+                for (let i = 0; i < options.length; i++)
+                {
+                    if (options[i].name === 'page')
+                    {
+                        options = options[i];
+                        break;
+                    }
+                }
+
+                if (options !== undefined
+                    && options.value <= pageAmount)
+                {
+                    page = options.value;
+                }
+
+                embed.setFooter({ text: `Page ${page}/${pageAmount}` });
+
+                for (let i = 0; i < songsPerPage; i++)
+                {
+                    const songNumber = i + 1 + (songsPerPage * (page - 1));
+                    if (songNumber >= serverQueue.getSongs().length) break;
+
+                    embed.addFields([
+                        {
+                            name: `[${songNumber}] ${serverQueue.getSongs(songNumber).title}`,
+                            value: `[Duration: ${moment.duration(serverQueue.getSongs(songNumber).duration, 'seconds').format('h:mm:ss').padStart(4, '0:0')}](${serverQueue.getSongs(songNumber).url})`,
+                        },
+                    ]);
+                }
+
+                interaction.editReply({ embeds: [embed], ephemeral: true });
             }
-            queueTime += Number(serverQueue.songs[i].duration);
-        }
+            else
+            {
+                embed.setDescription('There are no songs in the queue');
+            }
 
-        embeddedQueue.setDescription(`Total queue time: ${extraText} ${moment.duration(queueTime, 'seconds').format('h:mm:ss').padStart(4, '0:0')}`);
-
-        let page = undefined;
-        const songsPerPage = 10;
-        const pageAmount = Math.ceil((serverQueue.songs.length - 1) / songsPerPage);
-        if (args.length === 0 || args[0] === '1')
-        {
-            page = 1;
-            // embeddedQueue.setFooter(`Page 1/${Math.ceil(serverQueue.songs.length / 10)}`, bot.user.avatarURL());
+            interaction.editReply({ embeds: [embed], ephemeral: true });
         }
         else
         {
-            page = args[0];
-            if (page > pageAmount)
-            {
-                return message.channel.send(`I don't have that many queue pages. I only have ${pageAmount} pages`)
-                    .then(msg =>
-                    {
-                        if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                        {
-                            message.delete({ timeout: 5000 });
-                            msg.delete({ timeout: 5000 });
-                        }
-                    });
-            }
+            interaction.editReply({ embeds: [
+                baseEmbed.get(interaction.client)
+                    .setDescription('I wasn\'t in a voice channel'),
+            ] });
         }
-        embeddedQueue.setFooter(`Page ${page}/${pageAmount}`, bot.user.avatarURL());
-
-        for (let i = 0; i < songsPerPage; i++)
-        {
-            const songNumber = i + 1 + (songsPerPage * (page - 1));
-            if (songNumber >= serverQueue.songs.length)
-                break;
-            embeddedQueue.addField(`[${songNumber}] ${serverQueue.songs[songNumber].title}`, `${serverQueue.songs[songNumber].url}`);
-        }
-
-        message.channel.send(embeddedQueue);
+    },
+    getCommand()
+    {
+        return baseCommand.get(this)
+            .addNumberOption(option =>
+                option.setName('page')
+                    .setDescription('The page of the queue')
+                    .setMinValue(1)
+                    .setRequired(false));
     },
 };

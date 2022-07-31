@@ -60,22 +60,30 @@ module.exports = {
             return;
         }
 
-        const video = ytdl(song.url,
-            {
-                filter: 'audioonly',
-                highWaterMark: 1 << 25,
-                quality: 'highestaudio',
-                requestOptions:
+        let video = undefined;
+        try
+        {
+            video = ytdl(song.url,
                 {
-                    headers:
+                    filter: 'audioonly',
+                    highWaterMark: 1 << 25,
+                    quality: 'highestaudio',
+                    requestOptions:
                     {
-                        'Cookies': `SID=${interaction.client.config.SID}; HSID=${interaction.client.config.HSID}; SSID=${interaction.client.config.SSID}; SIDCC=${interaction.client.config.SIDCC};`,
-                        // 'cookies': `${cookies}`,
-                        'x-youtube-identity-token': `${interaction.client.config.xyoutubeidentitytoken}`,
+                        headers:
+                        {
+                            'Cookies': `SID=${interaction.client.config.SID}; HSID=${interaction.client.config.HSID}; SSID=${interaction.client.config.SSID}; SIDCC=${interaction.client.config.SIDCC};`,
+                            // 'cookies': `${cookies}`,
+                            'x-youtube-identity-token': `${interaction.client.config.xyoutubeidentitytoken}`,
+                        },
                     },
-                },
-                liveBuffer: 5000,
-            });
+                    liveBuffer: 5000,
+                });
+        }
+        catch (error)
+        {
+            return interaction.client.logger.debug(error);
+        }
 
         // const dispatcher = serverQueue.connection
         //     .play(video,
@@ -116,7 +124,9 @@ module.exports = {
 
         serverQueue.getConnection()?.subscribe(serverQueue.getPlayer());
 
-        serverQueue.play(createAudioResource(video));
+        const resource = createAudioResource(video);
+        serverQueue.setAudioResource(resource);
+        // serverQueue.play(serverQueue.getAudioResource());    // This is done whenever the audioresource is set
 
         serverQueue.getPlayer()
             .addListener('stateChange', (oldState, newState) =>
@@ -135,10 +145,15 @@ module.exports = {
                     {
                         serverQueue.getSongs().shift();
                     }
-                    if (serverQueue.getSongs().length === 0)
+                    if (serverQueue.getSongs().length === 0
+                        && serverQueue.isPlaying())
                     {
                         // No songs left
                         module.exports.play(interaction);
+                    }
+                    else if (serverQueue.getFullStop())
+                    {
+                        return;
                     }
                     else
                     {
@@ -147,6 +162,10 @@ module.exports = {
                 }
             });
 
+        if (!serverQueue || !serverQueue.getPlayer())
+        {
+            return;
+        }
         serverQueue.getPlayer()
             .on('error', (error) =>
             {
@@ -165,12 +184,15 @@ module.exports = {
                 // Nothing
             });
         momentDurationFormatSetup;
+        const d = Math.round(Date.now() / 1000) + parseInt(song.duration);
         serverQueue.setMessage(await serverQueue.interaction.channel.send({ embeds: [
             baseEmbed.get(interaction.client)
                 .setDescription(`Now playing: **[${song.title}](${song.url})**`)
                 .addFields([
                     { name: 'Duration', value: `${moment.duration(song.duration, 'seconds').format('h:mm:ss').padStart(4, '0:0')} minutes`, inline: true },
                     { name: 'Added by', value: `${song.user}`, inline: true },
+                    // TODO edit/renew based on pause/play commands
+                    { name: 'Ends', value: `<t:${d}:R>`, inline: true },
                 ])
                 .setThumbnail(song.thumbnail),
         ] }));

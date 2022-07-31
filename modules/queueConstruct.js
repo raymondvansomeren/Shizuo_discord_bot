@@ -21,7 +21,11 @@ module.exports = {
             {
                 const embed = baseEmbed.get(interaction.client)
                     .setDescription('You aren\'t in a voice channel in this server or I can\'t see that voice channel');
-                // this.message?.delete();
+                // this.message?.delete()
+                    // .catch(error =>
+                    //     {
+                    //         // Nothing
+                    //     });
                 // this.textChannel.send({ embeds: [embed], ephemeral: true });
                 this.interaction.editReply({ embeds: [embed], ephemeral: true });
                 this.destructor();
@@ -31,7 +35,11 @@ module.exports = {
             {
                 const embed = baseEmbed.get(interaction.client)
                     .setDescription('I can\'t join your voice channel');
-                // this.message?.delete();
+                // this.message?.delete()
+                    // .catch(error =>
+                    //     {
+                    //         // Nothing
+                    //     });
                 // this.textChannel.send({ embeds: [embed], ephemeral: true });
                 this.interaction.editReply({ embeds: [embed], ephemeral: true });
                 this.destructor();
@@ -41,8 +49,10 @@ module.exports = {
             this.songs = [];
             this.volume = 5;
             this.playing = false;
+            this.fullStop = false;
             this.loop = 'none';
             this.player = undefined;
+            this.resource = undefined;
         }
         destructor()
         {
@@ -91,6 +101,10 @@ module.exports = {
             if (id < this.songs.length)
             {
                 return this.songs.at(id);
+            }
+            else if (id >= this.songs.length)
+            {
+                return undefined;
             }
             return this.songs;
         }
@@ -186,6 +200,10 @@ module.exports = {
             {
                 this.player.play(resource);
             }
+            else
+            {
+                this.player.unpause();
+            }
         }
         pause()
         {
@@ -195,9 +213,14 @@ module.exports = {
         stop()
         {
             this.playing = false;
+            this.fullStop = true;
             this.player.stop();
             this.songs = [];
             this.connection?.disconnect();
+        }
+        getFullStop()
+        {
+            return this.fullStop;
         }
 
         getLoopState()
@@ -224,6 +247,16 @@ module.exports = {
         setPlayer(player)
         {
             this.player = player;
+        }
+
+        getAudioResource()
+        {
+            return this.resource;
+        }
+        setAudioResource(resource)
+        {
+            this.resource = resource;
+            this.play(this.resource);
         }
     },
 };

@@ -1,42 +1,71 @@
-module.exports =
-{
+const baseCommand = require('../modules/base-command.js');
+const baseEmbed = require('../modules/base-embed.js');
+
+const { getVoiceConnection } = require('@discordjs/voice');
+
+module.exports = {
     name: 'shuffle',
     description: 'Shuffles the queue',
-    aliases: ['random'],
-    usage: '',
-    async execute(bot, message, args)
+    async execute(interaction)
     {
-        if (message.member.roles.cache.find(role => role.name.toLowerCase() === 'nomusic') || message.member.roles.cache.find(role => role.name.toLowerCase() === 'incapacitated'))
+        await interaction.deferReply({ ephemeral: true });
+
+        if (interaction.member?.roles?.cache?.find(role => role.name.toLowerCase() === 'nomusic')
+        && interaction.member?.roles?.cache?.find(role => role.name.toLowerCase() === 'incapacitated'))
         {
-            return message.channel.send('Seems like you aren\'t allowed to use the music features :confused:')
+            return interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription('Seems like you aren\'t allowed to use the music features :confused:')], ephemeral: true });
+        }
+        const serverQueue = interaction.client.queue.get(interaction.guild.id);
+        if (serverQueue
+            || getVoiceConnection(interaction.guild.id) !== undefined)
+        {
+            interaction.editReply({ embeds: [
+                baseEmbed.get(interaction.client)
+                    .setDescription('Shuffling the queue :twisted_rightwards_arrows:'),
+            ] });
+
+            serverQueue.setSongs(this.shuffle(serverQueue.getSongs()));
+
+            interaction.channel.send({ embeds: [
+                baseEmbed.get(interaction.client)
+                    .setDescription(`${interaction.user} shuffled the queue :twisted_rightwards_arrows:`),
+            ] })
                 .then(msg =>
                 {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                    setTimeout(() =>
                     {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
+                        msg?.delete()
+                            .catch(error =>
+                            {
+                                // Nothing
+                            });
+                    }, 10000);
                 });
         }
-
-        const serverQueueSongs = bot.queue.get(message.guild.id).songs;
-        // console.log(serverQueueSongs);
-        // console.log('------------');
-        // Skip the first song (current song)
-        // const startIndex = 1;
-        const temp = serverQueueSongs.shift();
-        for (let i = 0; i < serverQueueSongs.length; i++)
+        else
         {
-            const randomIndex = Math.floor(Math.random() * serverQueueSongs.length);
-
-            const temporaryValue = serverQueueSongs[i];
-            serverQueueSongs[i] = serverQueueSongs[randomIndex];
-            serverQueueSongs[randomIndex] = temporaryValue;
+            interaction.editReply({ embeds: [
+                baseEmbed.get(interaction.client)
+                    .setDescription('I wasn\'t in a voice channel'),
+            ] });
         }
-        // console.log(serverQueueSongs);
-        serverQueueSongs.unshift(temp);
-        bot.queue.get(message.guild.id).songs = serverQueueSongs;
+    },
+    getCommand()
+    {
+        return baseCommand.get(this);
+    },
+    shuffle(playlist)
+    {
+        const temp = playlist.shift();
+        for (let i = 0; i < playlist.length; i++)
+        {
+            const randomIndex = Math.floor(Math.random() * playlist.length);
 
-        return message.channel.send('Shuffled the queue');
+            const temporaryValue = playlist[i];
+            playlist[i] = playlist[randomIndex];
+            playlist[randomIndex] = temporaryValue;
+        }
+        playlist.unshift(temp);
+        return playlist;
     },
 };
