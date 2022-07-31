@@ -4,8 +4,8 @@ const baseEmbed = require('../modules/base-embed.js');
 const { getVoiceConnection } = require('@discordjs/voice');
 
 module.exports = {
-    name: 'shuffle',
-    description: 'Shuffles the queue',
+    name: 'move',
+    description: 'Moves a song from index to new_index',
     async execute(interaction)
     {
         await interaction.deferReply({ ephemeral: true });
@@ -19,16 +19,30 @@ module.exports = {
         if (serverQueue
             || getVoiceConnection(interaction.guild.id) !== undefined)
         {
+            serverQueue.getMessage()?.delete()
+                .catch(error =>
+                {
+                    // Nothing
+                });
+
+            const indexOld = interaction.options?.data.find(element => element.name === 'index')?.value;
+            const indexNew = interaction.options?.data.find(element => element.name === 'new_index')?.value;
+            if (indexOld === undefined || indexNew === undefined)
+            {
+                return interaction.editReply({ embeds: [
+                    baseEmbed.get(interaction.client)
+                        .setDescription('Something went wrong, try again later'),
+                ] });
+            }
+            const song = serverQueue.getSongs(indexOld);
             interaction.editReply({ embeds: [
                 baseEmbed.get(interaction.client)
-                    .setDescription('Shuffling the queue :twisted_rightwards_arrows:'),
+                    .setDescription(`Moved ${indexOld} to ${indexNew}`),
             ] });
-
-            serverQueue.setSongs(this.shuffle(serverQueue.getSongs()));
 
             interaction.channel.send({ embeds: [
                 baseEmbed.get(interaction.client)
-                    .setDescription(`${interaction.user} shuffled the queue :twisted_rightwards_arrows:`),
+                    .setDescription(`${interaction.user} moved [${song.title}](${song.url}) to index ${indexNew}`),
             ] })
                 .then(msg =>
                 {
@@ -45,6 +59,11 @@ module.exports = {
                 {
                     // Nothing
                 });
+            // serverQueue?.stop();
+            const songs = serverQueue.getSongs();
+            songs.splice(indexOld, 1);
+            songs.splice(indexNew, 0, song);
+            serverQueue.setSongs(songs);
         }
         else
         {
@@ -56,20 +75,16 @@ module.exports = {
     },
     getCommand()
     {
-        return baseCommand.get(this);
-    },
-    shuffle(playlist)
-    {
-        const temp = playlist.shift();
-        for (let i = 0; i < playlist.length; i++)
-        {
-            const randomIndex = Math.floor(Math.random() * playlist.length);
-
-            const temporaryValue = playlist[i];
-            playlist[i] = playlist[randomIndex];
-            playlist[randomIndex] = temporaryValue;
-        }
-        playlist.unshift(temp);
-        return playlist;
+        return baseCommand.get(this)
+            .addNumberOption(option =>
+                option.setName('index')
+                    .setDescription('Index of song to move')
+                    .setMinValue(1)
+                    .setRequired(true))
+            .addNumberOption(option =>
+                option.setName('new_index')
+                    .setDescription('New index of song')
+                    .setMinValue(1)
+                    .setRequired(true));
     },
 };

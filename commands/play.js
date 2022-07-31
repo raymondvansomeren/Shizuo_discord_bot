@@ -1,213 +1,498 @@
+const baseCommand = require('../modules/base-command.js');
+const baseEmbed = require('../modules/base-embed.js');
+
+const { queueObject } = require('../modules/queueConstruct.js');
+
 const ytdl = require('ytdl-core');
 const ytsr = require('ytsr');
+const ytpl = require('ytpl');
 
-// const yt = require('youtube.get-video-info');
-
-const log = require('../modules/log').log;
-const error = require('../modules/log').error;
-
-const play = require('../modules/play.js').execute;
-
-// TODO fix age restricted videos
-const { HSID, SSID, SID, SIDCC, xyoutubeidentitytoken } = require('../config.json');
-
-module.exports =
-{
+module.exports = {
     name: 'play',
-    description: 'Plays a song in your current channel (if I ain\'t in a channel yet). If there is already a song playing, add song to the queue',
-    aliases: ['song', 'p', 'addsong'],
-    usage: '[song url] / [search text]',
-    async execute(bot, message, args)
+    description: 'Starts playing a song/add to queue',
+    async execute(interaction)
     {
-        if (message.member.roles.cache.find(role => role.name.toLowerCase() === 'nomusic') || message.member.roles.cache.find(role => role.name.toLowerCase() === 'incapacitated'))
+        try
         {
-            return message.channel.send('Seems like you aren\'t allowed to use the music features :confused:')
-                .then(msg =>
-                {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
-                });
-        }
+            // interaction.type 2 is ApplicationCommand: https://discord-api-types.dev/api/discord-api-types-v10/enum/InteractionType
+            // This is only checked for commands with options, because the options will only be available if the interaction type is ApplicationCommand
+            if (interaction.type !== 2)
+            {
+                throw `WrongInteractionType: Interaction type should be 2, but was ${interaction.type}`;
+            }
 
-        if (args.length === 0)
+            await interaction.deferReply({ ephemeral: true });
+
+            if (interaction.member?.roles?.cache?.find(role => role.name.toLowerCase() === 'nomusic')
+                || interaction.member?.roles?.cache?.find(role => role.name.toLowerCase() === 'incapacitated'))
+            {
+                return interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription('Seems like you aren\'t allowed to use the music features :confused:')], ephemeral: true });
+            }
+
+            const group = interaction.options?.data[0];
+            const subcommand = group.options[0];
+            const options = subcommand.options;
+
+            switch(group.name)
+            {
+            case 'playlist':
+            {
+                switch (subcommand.name)
+                {
+                // youtube_url
+                case 'url':
+                {
+                    this.youtubePlaylistURL(interaction, options);
+                    break;
+                }
+                }
+                break;
+            }
+            case 'song':
+            {
+                switch (subcommand.name)
+                {
+                // youtube_url
+                case 'url':
+                {
+                    this.youtubeSongURL(interaction, options);
+                    break;
+                }
+                // youtube_search
+                case 'search':
+                {
+                    this.youtubeSongSearch(interaction, options);
+                    break;
+                }
+                // spotify_url
+                case 'spotify_url':
+                {
+                    this.spotifySongURL(interaction, options);
+                    break;
+                }
+                }
+                break;
+            }
+            }
+        }
+        catch (error)
         {
-            return message.channel.send('You didn\'t pass me a song')
-                .then(msg =>
-                {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
-                });
+            const embed = baseEmbed.get(interaction.client)
+                .setDescription('Something went wrong, try again later');
+            if (interaction.deferred || interaction.replied)
+            {
+                interaction.editReply({ embeds: [embed.data], ephemeral: true });
+            }
+            else
+            {
+                interaction.reply({ embeds: [embed.data], ephemeral: true });
+            }
+            interaction.client.logger.error(error);
         }
+    },
+    async youtubePlaylistURL(interaction, op)
+    {
+        const serverQueue = await getServerQueue(interaction);
+        // If there still is no serverQueue; exit
+        // This can be the case when the user isn't in a voice channel
+        //   or the bot can't join their channel
+        if (!serverQueue) return;
 
-        // play(message, song);
+        const options = op.find(element => element.name === 'url');
+        interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription(`Trying to add **${options.value}**`)] });
 
-        const serverQueue = bot.queue.get(message.guild.id);
-        const voiceChannel = message.member.voice.channel;
-        if (!voiceChannel)
+        let added = 0;
+        let notAdded = 0;
+        let playlist = undefined;
+
+        try
         {
-            return message.channel.send('You need to be in a voice channel to play music!')
-                .then(msg =>
+            playlist = await ytpl(options.value, { limit: Infinity, requestOptions:
                 {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                    headers:
                     {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
+                        'Cookie': `SID=${interaction.client.config.SID}; HSID=${interaction.client.config.xHSID}; SSID=${interaction.client.config.xSSID}; SIDCC=${interaction.client.config.xSIDCC};`,
+                        'x-youtube-identity-token': `${interaction.client.config.xyoutubeidentitytoken}`,
+                    },
+                },
+            })
+                .catch(error =>
+                {
+                    return undefined;
                 });
-        }
 
-        const permissions = voiceChannel.permissionsFor(message.guild.me);
-        if (!permissions.has('VIEW_CHANNEL') || !permissions.has('CONNECT') || !permissions.has('SPEAK'))
+            if (!playlist || playlist === undefined || playlist === null)
+            {
+                return interaction.editReply({ embeds: [
+                    baseEmbed.get(interaction.client)
+                        .setDescription('Couldn\'t find that URL. Make sure to fill in an URL to a public/unlisted YouTube playlist'),
+                ] });
+            }
+
+            if (op.find(element => element.name === 'shuffled')?.value)
+            {
+                for (let i = 0; i < playlist.items.length; i++)
+                {
+                    const randomIndex = Math.floor(Math.random() * playlist.items.length);
+
+                    const temporaryValue = playlist.items[i];
+                    playlist.items[i] = playlist.items[randomIndex];
+                    playlist.items[randomIndex] = temporaryValue;
+                }
+            }
+
+            for (let i = 0; i < playlist.items.length; i++)
+            {
+                const song =
+                {
+                    title: playlist.items[i]?.title,
+                    url: playlist.items[i]?.shortUrl,
+                    duration: parseInt(playlist.items[i]?.durationSec) ?? Infinity,
+                    user: interaction.user,
+                    thumbnail: playlist.items[i].bestThumbnail.url ?? undefined,
+                    remaining: playlist.items[i].durationSec ?? Infinity,
+                };
+
+                if (serverQueue.addSong(song, interaction, playlist))
+                {
+                    added++;
+                }
+                else
+                {
+                    notAdded++;
+                }
+            }
+            if (notAdded === 0)
+            {
+                interaction.editReply({ embeds: [
+                    baseEmbed.get(interaction.client)
+                        .setDescription(`Added ${added} songs.`),
+                ] });
+            }
+            else
+            {
+                interaction.editReply({ embeds: [
+                    baseEmbed.get(interaction.client)
+                        .setDescription(`Added ${added} songs. Couldn't add ${notAdded} songs.`),
+                ] });
+            }
+        }
+        catch (e)
         {
-            return message.channel.send('I need the permissions to join and speak in your voice channel!')
-                .then(msg =>
-                {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
-                });
-        }
+            interaction.client.logger.error(e);
+            if (e.statusCode >= 400)
+            {
+                return interaction.editReply({ embeds: [
+                    baseEmbed.get(interaction.client)
+                        .setDescription(`Some error happened, status code ${e.statusCode}. Should be fixed shortly`),
+                ] });
+            }
 
+            return interaction.editReply({ embeds: [
+                baseEmbed.get(interaction.client)
+                    .setDescription('Some error happened'),
+            ] });
+        }
+    },
+    async youtubeSongURL(interaction, op)
+    {
+        const serverQueue = await getServerQueue(interaction);
+        // If there still is no serverQueue; exit
+        // This can be the case when the user isn't in a voice channel
+        //   or the bot can't join their channel
+        if (!serverQueue) return;
+
+        const options = op.find(element => element.name === 'url');
+        interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription(`Trying to add **${options.value}**`)] });
 
         const song =
         {
             title: '',
             url: '',
             duration: Infinity,
+            user: interaction.user,
+            thumbnail: undefined,
+            remaining: Infinity,
         };
-        let fullArgs = '';
-        for (let i = 0; i < args.length; i++)
-        {
-            if (i !== 0)
-            {
-                fullArgs += ' ';
-            }
-            fullArgs += `${args[i]}`;
-        }
 
-        let filters = undefined;
         try
         {
-            filters = await ytsr.getFilters(fullArgs, { requestOptions:
+            let filters = undefined;
+            try
+            {
+                filters = await ytsr.getFilters(options.value, { requestOptions:
+                    {
+                        headers:
+                        {
+                            'Cookies': `SID=${interaction.client.config.SID}; HSID=${interaction.client.config.HSID}; SSID=${interaction.client.config.SSID}; SIDCC=${interaction.client.config.SIDCC};`,
+                            'x-youtube-identity-token': `${interaction.client.config.xyoutubeidentitytoken}`,
+                        },
+                    },
+                });
+            }
+            catch (error)
+            {
+                const embed = baseEmbed.get(interaction.client)
+                    .setDescription(`Some error happened, status code ${error.statusCode}. Should be fixed shortly`);
+                if (interaction.deferred || interaction.replied)
+                {
+                    interaction.editReply({ embeds: [embed.data], ephemeral: true });
+                }
+                else
+                {
+                    interaction.reply({ embeds: [embed.data], ephemeral: true });
+                }
+                interaction.client.logger.error(error);
+            }
+            const filterVideo = filters.get('Type').get('Video');
+            if (filterVideo.url === undefined || filterVideo.url === null)
+            {
+                return interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription(`Could not find ${options.value}`)] });
+            }
+            const results = await ytsr(filterVideo.url, { pages: 1, requestOptions:
                 {
                     headers:
                     {
-                        'Cookies': `SID=${SID}; HSID=${HSID}; SSID=${SSID}; SIDCC=${SIDCC};`,
-                        'x-youtube-identity-token': `${xyoutubeidentitytoken}`,
+                        'Cookies': `SID=${interaction.client.config.SID}; HSID=${interaction.client.config.HSID}; SSID=${interaction.client.config.SSID}; SIDCC=${interaction.client.config.SIDCC};`,
+                        'x-youtube-identity-token': `${interaction.client.config.xyoutubeidentitytoken}`,
                     },
                 },
             });
-        }
-        catch (e)
-        {
-            log(e);
-            if (e.statusCode >= 400)
+            if (results?.items?.length === 0)
             {
-                return message.channel.send(`Some error happened, status code ${e.statusCode}. Should be fixed shortly`);
+                return interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription(`Could not find ${options.value}`)] });
+
             }
 
-            return message.channel.send('Some error happened');
-        }
-        const filterVideo = filters.get('Type').get('Video');
-        if (filterVideo.url === undefined || filterVideo.url === null)
-        {
-            return message.channel.send(`Could not find ${fullArgs}`)
-                .then(msg =>
+            song.thumbnail = results.items[0].bestThumbnail?.url;
+            song.title = results.items[0].title;
+            song.url = options.value;
+            const b = await ytdl.getInfo(song.url)
+                .then((info) =>
                 {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
+                    // interaction.client.logger.debug('Duration in seconds: ', info.videoDetails.lengthSeconds);
+                    song.duration = parseInt(info.videoDetails.lengthSeconds);
+                    song.remaining = song.duration;
+                    return true;
+                })
+                .catch(error =>
+                {
+                    // interaction.client.logger.error(error);
+                    return false;
                 });
-        }
-        const results = await ytsr(filterVideo.url, { pages: 1, requestOptions:
+
+            if (!b)
             {
-                headers:
-                {
-                    'Cookies': `SID=${SID}; HSID=${HSID}; SSID=${SSID}; SIDCC=${SIDCC};`,
-                    'x-youtube-identity-token': `${xyoutubeidentitytoken}`,
-                },
-            },
-        });
-
-        if (results.items.length === 0 || results.items === undefined || results === undefined)
-        {
-            return message.channel.send(`Could not find ${fullArgs}`)
-                .then(msg =>
-                {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
-                });
-        }
-
-        song.title = results.items[0].title;
-        song.url = `https://www.youtube.com/watch?v=${results.items[0].id}`;
-
-        ytdl.getInfo(song.url)
-            .then((info) =>
-            {
-                // console.log('Duration in seconds: ', info.videoDetails.lengthSeconds);
-                song.duration = info.videoDetails.lengthSeconds;
-            });
-
-        if (!serverQueue || serverQueue === undefined || serverQueue === null || serverQueue.songs.length <= 0)
-        {
-            // Creating the contract for our queue
-            const queueContruct =
-            {
-                textChannel: message.channel,
-                voiceChannel: voiceChannel,
-                connection: null,
-                songs: [],
-                volume: 5,
-                playing: true,
-                loop: 'none',
-            };
-            // Setting the queue using our contract
-            bot.queue.set(message.guild.id, queueContruct);
-            // Pushing the song to our songs array
-            queueContruct.songs.push(song);
-
-            try
-            {
-                // Here we try to join the voicechat and save our connection into our object.
-                const connection = await voiceChannel.join();
-                queueContruct.connection = connection;
-                // Calling the play function to start a song
-                play(message, queueContruct.songs[0]);
+                return interaction.editReply({ embeds: [
+                    baseEmbed.get(interaction.client)
+                        .setDescription('Couldn\'t find that URL. Make sure to fill in an URL to a YouTube video'),
+                ] });
             }
-            catch (err)
-            {
-                // Printing the error message if the bot fails to join the voicechat
-                error(err);
-                bot.queue.delete(message.guild.id);
-                return message.channel.send(err)
-                    .then(msg =>
-                    {
-                        if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                        {
-                            message.delete({ timeout: 5000 });
-                            msg.delete({ timeout: 5000 });
-                        }
-                    });
-            }
+            serverQueue.addSong(song, interaction);
         }
-        else
+        catch (error)
         {
-            serverQueue.songs.push(song);
-            return message.channel.send(`**${song.title}** has been added to the queue!\n(${song.url})`);
+            const embed = baseEmbed.get(interaction.client)
+                .setDescription('Something went wrong, try again later');
+            if (interaction.deferred || interaction.replied)
+            {
+                interaction.editReply({ embeds: [embed.data], ephemeral: true });
+            }
+            else
+            {
+                interaction.reply({ embeds: [embed.data], ephemeral: true });
+            }
+            interaction.client.logger.error(error);
         }
     },
+    async youtubeSongSearch(interaction, op)
+    {
+        const serverQueue = await getServerQueue(interaction);
+        // If there still is no serverQueue; exit
+        // This can be the case when the user isn't in a voice channel
+        //   or the bot can't join their channel
+        if (!serverQueue) return;
+
+        const options = op.find(element => element.name === 'query');
+        interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription(`Trying to add **${options.value}**`)] });
+
+        const song =
+        {
+            title: '',
+            url: '',
+            duration: Infinity,
+            user: interaction.user,
+            thumbnail: undefined,
+            remaining: Infinity,
+        };
+
+        try
+        {
+            let filters = undefined;
+            try
+            {
+                filters = await ytsr.getFilters(options.value, { requestOptions:
+                    {
+                        headers:
+                        {
+                            'Cookies': `SID=${interaction.client.config.SID}; HSID=${interaction.client.config.HSID}; SSID=${interaction.client.config.SSID}; SIDCC=${interaction.client.config.SIDCC};`,
+                            'x-youtube-identity-token': `${interaction.client.config.xyoutubeidentitytoken}`,
+                        },
+                    },
+                });
+            }
+            catch (error)
+            {
+                const embed = baseEmbed.get(interaction.client)
+                    .setDescription(`Some error happened, status code ${error.statusCode}. Should be fixed shortly`);
+                if (interaction.deferred || interaction.replied)
+                {
+                    interaction.editReply({ embeds: [embed.data], ephemeral: true });
+                }
+                else
+                {
+                    interaction.reply({ embeds: [embed.data], ephemeral: true });
+                }
+                interaction.client.logger.error(error);
+            }
+            const filterVideo = filters.get('Type').get('Video');
+            if (filterVideo.url === undefined || filterVideo.url === null)
+            {
+                return interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription(`Could not find ${options.value}`)] });
+            }
+            const results = await ytsr(filterVideo.url, { pages: 1, requestOptions:
+                {
+                    headers:
+                    {
+                        'Cookies': `SID=${interaction.client.config.SID}; HSID=${interaction.client.config.HSID}; SSID=${interaction.client.config.SSID}; SIDCC=${interaction.client.config.SIDCC};`,
+                        'x-youtube-identity-token': `${interaction.client.config.xyoutubeidentitytoken}`,
+                    },
+                },
+            });
+            if (results?.items?.length === 0)
+            {
+                return interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription(`Could not find ${options.value}`)] });
+
+            }
+
+            song.thumbnail = results.items[0].bestThumbnail.url;
+            song.title = results.items[0].title;
+            song.url = results.items[0].url;
+            const b = await ytdl.getInfo(song.url)
+                .then((info) =>
+                {
+                    // interaction.client.logger.debug('Duration in seconds: ', info.videoDetails.lengthSeconds);
+                    song.duration = parseInt(info.videoDetails.lengthSeconds);
+                    song.remaining = song.duration;
+                    return true;
+                })
+                .catch(error =>
+                {
+                    // interaction.client.logger.error(error);
+                    return false;
+                });
+
+            if (!b)
+            {
+                return interaction.editReply({ embeds: [
+                    baseEmbed.get(interaction.client)
+                        .setDescription('Couldn\'t find any video with that search term.'),
+                ] });
+            }
+            serverQueue.addSong(song, interaction);
+        }
+        catch (error)
+        {
+            const embed = baseEmbed.get(interaction.client)
+                .setDescription('Something went wrong, try again later');
+            if (interaction.deferred || interaction.replied)
+            {
+                interaction.editReply({ embeds: [embed.data], ephemeral: true });
+            }
+            else
+            {
+                interaction.reply({ embeds: [embed.data], ephemeral: true });
+            }
+            interaction.client.logger.error(error);
+        }
+    },
+    async spotifySongURL(interaction, op)
+    {
+        // TODO do something
+
+        // const options = op.find(element => element.name === 'url');
+
+        const embed = baseEmbed.get(interaction.client)
+            .setDescription('This feature is not yet implemented');
+        interaction.editReply({ embeds: [embed], ephemeral: true });
+    },
+    getCommand()
+    {
+        return baseCommand.get(this)
+            .addSubcommandGroup(group =>
+                group.setName('playlist')
+                    .setDescription('something')
+                    .addSubcommand(subcommand =>
+                        // 'youtube_url'
+                        subcommand.setName('url')
+                            .setDescription('Add a whole playlist by URL')
+                            .addStringOption(option =>
+                                option.setName('url')
+                                    .setDescription('The URL of the playlist')
+                                    .setRequired(true))
+                            .addBooleanOption(option =>
+                                option.setName('shuffled')
+                                    .setDescription('Add playlist shuffled?')
+                                    .setRequired(false))))
+            .addSubcommandGroup(group =>
+                group.setName('song')
+                    .setDescription('something')
+                    .addSubcommand(subcommand =>
+                        // 'youtube_url
+                        subcommand.setName('url')
+                            .setDescription('Add a single song by URL')
+                            .addStringOption(option =>
+                                option.setName('url')
+                                    .setDescription('The URL of the song')
+                                    .setRequired(true)))
+                    // .addSubcommand(subcommand =>
+                    //     subcommand.setName('spotify_url')
+                    //         .setDescription('Add a single song by spotify URL')
+                    //         .addStringOption(option =>
+                    //             option.setName('url')
+                    //                 .setDescription('The URL of the song')
+                    //                 .setRequired(true)))
+                    .addSubcommand(subcommand =>
+                        // 'youtube_search'
+                        subcommand.setName('search')
+                            .setDescription('Add a single song by a search query')
+                            .addStringOption(option =>
+                                option.setName('query')
+                                    .setDescription('The search query for a single song')
+                                    .setRequired(true))));
+    },
 };
+
+async function getServerQueue(interaction)
+{
+    const serverQueue = interaction.client.queue.get(interaction.guild.id);
+    if (!serverQueue)
+    {
+        const embed = baseEmbed.get(interaction.client)
+            .setDescription('Trying to join you in a voice channel');
+
+        await interaction.editReply({ embeds: [embed], ephemeral: false });
+        // const message = await interaction.channel.send({ embeds: [embed], ephemeral: false })
+        // .catch(error =>
+        //     {
+        //         // Nothing
+        //     });
+        const q = new queueObject(interaction, undefined);
+        if (!q.getVoiceChannel()?.joinable)
+        {
+            return undefined;
+        }
+        return q;
+    }
+    return serverQueue;
+}

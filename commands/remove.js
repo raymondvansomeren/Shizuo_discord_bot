@@ -1,45 +1,80 @@
-module.exports =
-{
+const baseCommand = require('../modules/base-command.js');
+const baseEmbed = require('../modules/base-embed.js');
+
+const { getVoiceConnection } = require('@discordjs/voice');
+
+module.exports = {
     name: 'remove',
     description: 'Removes a song from the queue',
-    aliases: ['delete'],
-    usage: '[queue index (optional)]',
-    async execute(bot, message, args)
+    async execute(interaction)
     {
-        if (message.member.roles.cache.find(role => role.name.toLowerCase() === 'nomusic') || message.member.roles.cache.find(role => role.name.toLowerCase() === 'incapacitated'))
+        await interaction.deferReply({ ephemeral: true });
+
+        if (interaction.member?.roles?.cache?.find(role => role.name.toLowerCase() === 'nomusic')
+        || interaction.member?.roles?.cache?.find(role => role.name.toLowerCase() === 'incapacitated'))
         {
-            return message.channel.send('Seems like you aren\'t allowed to use the music features :confused:')
+            return interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription('Seems like you aren\'t allowed to use the music features :confused:')], ephemeral: true });
+        }
+        const serverQueue = interaction.client.queue.get(interaction.guild.id);
+        if (serverQueue
+            && getVoiceConnection(interaction.guild.id) !== undefined)
+        {
+            const index = interaction.options?.data.find(element => element.name === 'index')?.value;
+            if (!index || index >= serverQueue.getSongs().length)
+            {
+                await interaction.editReply({ embeds: [
+                    baseEmbed.get(interaction.client)
+                        .setDescription('I don\'t have that many songs in the queue'),
+                ] });
+                return;
+            }
+
+            const song = serverQueue.getSongs(index);
+            interaction.editReply({ embeds: [
+                baseEmbed.get(interaction.client)
+                    .setDescription(`Removing **[${song.title}](${song.url})** from the queue`)
+                    .setThumbnail(song.thumbnail),
+            ] });
+
+            interaction.channel.send({ embeds: [
+                baseEmbed.get(interaction.client)
+                    .setDescription(`${interaction.user} removed [${song.title}](${song.url}) from the queue`)
+                    .setThumbnail(song.thumbnail),
+            ] })
                 .then(msg =>
                 {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
+                    setTimeout(() =>
                     {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
+                        msg?.delete()
+                            .catch(error =>
+                            {
+                                // Nothing
+                            });
+                    }, 10000);
+                })
+                .catch(error =>
+                {
+                    // Nothing
                 });
-        }
-
-        const serverQueueSongs = bot.queue.get(message.guild.id).songs;
-        if (args.length === 0 || args === undefined || args === null)
-        {
-            const temp = serverQueueSongs[serverQueueSongs.length - 1];
-            serverQueueSongs.splice(serverQueueSongs.length - 1, 1);
-            return message.channel.send(`Removed song at index ${serverQueueSongs.length} (${temp.url})`);
-        }
-        else if (!isNaN(args[0]) && !isNaN(parseFloat(args[0])))
-        {
-            let args0AsNumber = Number(args[0]);
-            if (Number(args[0]) <= 0)
-                args0AsNumber = 1;
-
-            const temp = serverQueueSongs[args0AsNumber];
-            serverQueueSongs.splice(args0AsNumber, 1);
-            return message.channel.send(`Removed song at index ${args0AsNumber} (${temp.url})`);
+            const songs = serverQueue.getSongs();
+            songs.splice(index, 1);
+            serverQueue.setSongs(songs);
         }
         else
         {
-            return message.channel.send('I can\t handle text, please give me the number of the song in the queue');
+            interaction.editReply({ embeds: [
+                baseEmbed.get(interaction.client)
+                    .setDescription('I wasn\'t in a voice channel'),
+            ] });
         }
-
+    },
+    getCommand()
+    {
+        return baseCommand.get(this)
+            .addNumberOption(option =>
+                option.setName('index')
+                    .setDescription('Index of song to remove')
+                    .setMinValue(1)
+                    .setRequired(true));
     },
 };

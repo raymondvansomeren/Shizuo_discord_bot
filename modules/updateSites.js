@@ -1,18 +1,16 @@
 const axios = require('axios');
+const { siteTokens, inDevelopment } = require('../config.json');
 
 module.exports = {
     name: 'updateSites',
     execute(client)
     {
-        if (client === undefined || client.guilds === undefined || client.guilds.cache === undefined)
-        {
-            return;
-        }
-        const guilds = client.guilds.cache.size;
-        // const guilds = 60;
+        if (inDevelopment) return;
 
-        const topgg = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijc2MTI2MjIxMDIwNjUzMTY0NSIsImJvdCI6dHJ1ZSwiaWF0IjoxNjA4NjYzOTA3fQ._g8aJuV_XCfbkFZoGai4AJMMgD3Zo_b2tZg6LJGXduw';
-        axios.post('https://top.gg/api/bots/761262210206531645/stats',
+        const guilds = client.guilds?.cache?.size;
+
+        const topgg = siteTokens.topgg.token;
+        axios.post(siteTokens.topgg.url,
             {
                 server_count: guilds,
             },
@@ -23,28 +21,43 @@ module.exports = {
                 },
             });
 
-        const discordbotsgg = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGkiOnRydWUsImlkIjoiMjcwODcxOTIxMTM3MDI1MDI0IiwiaWF0IjoxNjA4ODMwMDE5fQ.b_284EFyxa6P2hBoRXSn9Zl1OZyxB-5uu6ijIu_e5Kk';
-        axios.post('https://discord.bots.gg/api/v1/bots/761262210206531645/stats',
+        const discord_bots_gg = siteTokens.discord_bots_gg.token;
+        axios.post(siteTokens.discord_bots_gg.url,
             {
                 guildCount: guilds,
             },
             {
                 headers:
                 {
-                    'Authorization': `${discordbotsgg}`,
+                    'Authorization': `${discord_bots_gg}`,
                 },
             });
 
-        const discordbotstoken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0IjoxLCJpZCI6Ijc2MTI2MjIxMDIwNjUzMTY0NSIsImlhdCI6MTYwODgyOTczOX0.edtFODPjA8qBJpCoDSQSTitJzVwDhizWi_OGjEylV5c';
-        axios.post('https://discordbotlist.com/api/v1/bots/761262210206531645/stats',
+        const discordbotlist = siteTokens.discordbotlist.token;
+        axios.post(siteTokens.discordbotlist.url,
             {
                 guilds: `${guilds}`,
             },
             {
                 headers:
                 {
-                    'Authorization': `${discordbotstoken}`,
+                    'Authorization': `${discordbotlist}`,
                 },
             });
+
+        // const discordbots_gg = siteTokens.discordbots_gg.token;
+        // axios.post(siteTokens.discordbots_gg.url,
+        //     {
+        //         '': `${guilds}`,
+        //     },
+        //     {
+        //         headers:
+        //         {
+        //             'Authorization': `${discordbots_gg}`,
+        //         },
+        //     });
     },
 };
+
+
+module.exports.execute('something');
