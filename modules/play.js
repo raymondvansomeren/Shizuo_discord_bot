@@ -12,6 +12,8 @@ module.exports = {
     {
         const serverQueue = interaction.client.queue.get(interaction.guild.id);
 
+        if (serverQueue === undefined) return;
+
         if (!song)
         {
             serverQueue.setSongs([]);
@@ -124,6 +126,7 @@ module.exports = {
         //
         // dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
 
+        // TODO crashed here (cannot read property of undefined (reading 'setPlayer'))
         serverQueue.setPlayer(createAudioPlayer({
             behaviors: {
                 noSubscriber: NoSubscriberBehavior.Play,
