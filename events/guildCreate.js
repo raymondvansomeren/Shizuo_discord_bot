@@ -1,3 +1,5 @@
+const { ActivityType } = require('discord.js');
+
 const { logLevel } = require('../config.json');
 const logger = require('log4js').getLogger();
 logger.level = logLevel;
@@ -18,11 +20,11 @@ module.exports = {
 
         client.user.setPresence({
             status: 'online',
-            activity: {
+            activities: [{
                 name: `over ${client.guilds.cache.size} servers`,
                 // PLAYING: WATCHING: LISTENING: STREAMING:
-                type: 'WATCHING',
-            },
+                type: ActivityType.Watching,
+            }],
         });
 
         // client.connection.query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
