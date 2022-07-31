@@ -1,33 +1,17 @@
 {
-  "name": "shizuo_heiwajima",
-  "version": "1.0.0",
-  "description": "Music bot with moderation capabilities",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "Raymond van Someren (raymond570#2966)",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/raymondvansomeren/Shizuo_discord_bot"
-  },
-  "license": "ISC",
   "dependencies": {
-    "@discordjs/opus": "^0.3.3",
-    "axios": "^0.21.4",
-    "cookiefile": "^1.0.10",
-    "discord.js": "^12.3.1",
-    "eslint": "^7.32.0",
-    "ffmpeg": "0.0.4",
-    "ffmpeg-static": "^4.2.7",
-    "fluent-ffmpeg": "^2.1.2",
-    "moment": "^2.29.1",
+    "@discordjs/rest": "^1.0.0",
+    "@discordjs/voice": "^0.11.0",
+    "axios": "^0.27.2",
+    "discord.js": "^14.1.2",
+    "eslint": "^8.20.0",
+    "ffmpeg-static": "^5.0.2",
+    "log4js": "^6.6.0",
+    "moment": "^2.29.4",
     "moment-duration-format": "^2.3.2",
-    "mysql2": "^2.2.5",
-    "tx2": "^1.0.4",
-    "youtube.get-video-info": "^1.0.2",
-    "ytdl-core": "^4.9.1",
-    "ytpl": "^2.0.5",
-    "ytsr": "^3.3.1"
+    "sodium": "^3.0.2",
+    "ytdl-core": "^4.11.0",
+    "ytpl": "^2.3.0",
+    "ytsr": "^3.8.0"
   }
 }

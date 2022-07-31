@@ -2,14 +2,14 @@ const baseCommand = require('../modules/base-command.js');
 const baseEmbed = require('../modules/base-embed.js');
 
 module.exports = {
-    name: 'avatar',
-    description: 'Returns the avatar of you or a specified user',
+    name: 'userinfo',
+    description: 'Shows info about specified user',
     async execute(interaction)
     {
         try
         {
-            await interaction.deferReply({ ephemeral: true });
             // interaction.type 2 is ApplicationCommand: https://discord-api-types.dev/api/discord-api-types-v10/enum/InteractionType
+            // This is only checked for commands with options, because the options will only be available if the interaction type is ApplicationCommand
             if (interaction.type !== 2)
             {
                 throw `WrongInteractionType: Interaction type should be 2, but was ${interaction.type}`;
@@ -18,12 +18,12 @@ module.exports = {
 
             const embed = baseEmbed.get(interaction.client);
 
+            let member = undefined;
+
+            // Is there a user defined or are we going to use the command caller?
             if (options?.length <= 0)
             {
-                embed
-                    .setTitle(`Avatar of ${interaction.user.username}`)
-                    .setDescription(`Link to avatar: <${interaction.user.displayAvatarURL({ format: 'png', dynamic: true })}>`)
-                    .setImage(`${interaction.user.displayAvatarURL({ format: 'png', dynamic: true })}`);
+                member = interaction.member;
             }
             else
             {
@@ -32,11 +32,7 @@ module.exports = {
                 {
                     if (options[i].name === 'user')
                     {
-                        const user = options[i].user;
-                        embed
-                            .setTitle(`Avatar of ${user.username}`)
-                            .setDescription(`Link to avatar: <${user.displayAvatarURL({ format: 'png', dynamic: true })}>`)
-                            .setImage(`${user.displayAvatarURL({ format: 'png', dynamic: true })}`);
+                        member = options[i].member;
                         found = true;
                         break;
                     }
@@ -47,7 +43,30 @@ module.exports = {
                 }
             }
 
-            interaction.editReply({ embeds: [embed.data], ephemeral: true });
+            // Fill the embed with userdata
+            embed
+                .setTitle(`Info about user ${member.user.username}`)
+                .setFields([
+                    { name: 'User', value: `<@${member.user.id}>`, inline: true },
+                    { name: 'Created at', value: `<t:${Math.round(member.user.createdTimestamp / 1000)}:F> (<t:${Math.round(member.user.createdTimestamp / 1000)}:R>)`, inline: true },
+                    { name: 'Joined at', value: `<t:${Math.round(member.joinedTimestamp / 1000)}:F> (<t:${Math.round(member.joinedTimestamp / 1000)}:R>)`, inline: true },
+                    { name: 'ID', value: `${member.id}`, inline: true },
+                    { name: 'Avatar', value: `<${member.user.displayAvatarURL({ format: 'png', dynamic: true })}>`, inline: false },
+                ])
+                .setImage(`${member.user.displayAvatarURL({ format: 'png', dynamic: true })}`);
+
+            // Only add roles to the fields if the user has some roles
+            if (member._roles.length > 0)
+            {
+                let roles = '';
+                for (const role of member._roles)
+                {
+                    roles += `<@&${role}> `;
+                }
+                embed.addFields([{ name: 'Roles', value: roles, inline: true }]);
+            }
+
+            interaction.reply({ embeds: [embed.data], ephemeral: false });
         }
         catch (error)
         {

@@ -1,65 +1,65 @@
-const log = require('../modules/log').log;
-const error = require('../modules/log').error;
+const { ActivityType } = require('discord.js');
+
+const { logLevel } = require('../config.json');
+const logger = require('log4js').getLogger();
+logger.level = logLevel;
 
 const updateSites = require('../modules/updateSites').execute;
 
-const { defaultPrefix, defaultModPrefix } = require('../config.json');
+// const { defaultPrefix, defaultModPrefix } = require('../config.json');
 
 module.exports = {
-    name: 'guildDelete',
+    name: 'guildCreate',
     once: false,
-    execute(client, guild)
+    execute(guild)
     {
-        if (client === undefined || client.user === undefined || client.connection === undefined || guild === undefined)
-        {
-            return;
-        }
-        log(`New server joined! (${guild.name})`);
+        logger.info(`New server joined! (${guild.name})`);
 
-        updateSites(client);
+        updateSites(guild.client);
+        const client = guild.client;
 
         client.user.setPresence({
             status: 'online',
-            activity: {
+            activities: [{
                 name: `over ${client.guilds.cache.size} servers`,
                 // PLAYING: WATCHING: LISTENING: STREAMING:
-                type: 'WATCHING',
-            },
+                type: ActivityType.Watching,
+            }],
         });
 
-        client.connection.query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
-            function(e, results, fields)
-            {
-                if (e)
-                {
-                    return error('line: 208. file: index.js =>\n', e);
-                }
+        // client.connection.query(`SELECT Guild FROM guildsettings WHERE Guild = '${guild.id}';`,
+        //     function(e, results, fields)
+        //     {
+        //         if (e)
+        //         {
+        //             return logger.error('line: 208. file: index.js =>\n', e);
+        //         }
 
-                // TODO change to use INSERT ON EXIST
-                if (results.length < 1 || results == undefined)
-                {
-                    client.connection.query(`INSERT INTO guildsettings (Guild, Prefix, ModPrefix) VALUES ('${guild.id}', '${defaultPrefix}', '${defaultModPrefix}');`,
-                        function(ee, results2)
-                        {
-                            if (ee)
-                            {
-                                return error(ee);
-                            }
-                        });
-                }
-                else
-                {
-                    client.connection.query(`UPDATE guildsettings SET Prefix = '${defaultPrefix}', ModPrefix = '${defaultModPrefix}' WHERE Guild = '${guild.id}';`,
-                        function(eee, results3)
-                        {
-                            if (eee)
-                            {
-                                return error(eee);
-                            }
-                        });
-                }
-            });
-        client.prefixes.set(guild.id, defaultPrefix);
-        client.modPrefixes.set(guild.id, defaultModPrefix);
+        //         // TODO change to use INSERT ON EXIST
+        //         if (results.length < 1 || results == undefined)
+        //         {
+        //             client.connection.query(`INSERT INTO guildsettings (Guild, Prefix, ModPrefix) VALUES ('${guild.id}', '${defaultPrefix}', '${defaultModPrefix}');`,
+        //                 function(ee, results2)
+        //                 {
+        //                     if (ee)
+        //                     {
+        //                         return logger.error(ee);
+        //                     }
+        //                 });
+        //         }
+        //         else
+        //         {
+        //             client.connection.query(`UPDATE guildsettings SET Prefix = '${defaultPrefix}', ModPrefix = '${defaultModPrefix}' WHERE Guild = '${guild.id}';`,
+        //                 function(eee, results3)
+        //                 {
+        //                     if (eee)
+        //                     {
+        //                         return logger.error(eee);
+        //                     }
+        //                 });
+        //         }
+        //     });
+        // client.prefixes.set(guild.id, defaultPrefix);
+        // client.modPrefixes.set(guild.id, defaultModPrefix);
     },
 };

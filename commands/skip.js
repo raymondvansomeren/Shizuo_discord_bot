@@ -1,72 +1,79 @@
-module.exports =
-{
+const baseCommand = require('../modules/base-command.js');
+const baseEmbed = require('../modules/base-embed.js');
+
+const moment = require('moment');
+const momentDurationFormatSetup = require('moment-duration-format');
+
+const { getVoiceConnection } = require('@discordjs/voice');
+
+module.exports = {
     name: 'skip',
-    description: 'Skips the current song.',
-    aliases: ['next'],
-    usage: '',
-    async execute(bot, message, args)
+    description: 'Skips the current song',
+    async execute(interaction)
     {
-        if (message.member.roles.cache.find(role => role.name.toLowerCase() === 'nomusic') || message.member.roles.cache.find(role => role.name.toLowerCase() === 'incapacitated'))
+        await interaction.deferReply({ ephemeral: true });
+
+        if (interaction.member?.roles?.cache?.find(role => role.name.toLowerCase() === 'nomusic')
+        || interaction.member?.roles?.cache?.find(role => role.name.toLowerCase() === 'incapacitated'))
         {
-            return message.channel.send('Seems like you aren\'t allowed to use the music features :confused:')
-                .then(msg =>
+            return interaction.editReply({ embeds: [baseEmbed.get(interaction.client).setDescription('Seems like you aren\'t allowed to use the music features :confused:')], ephemeral: true });
+        }
+        const serverQueue = interaction.client.queue.get(interaction.guild.id);
+        if (serverQueue
+            && getVoiceConnection(interaction.guild.id) !== undefined)
+        {
+            serverQueue.getMessage()?.delete()
+                .catch(error =>
                 {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
+                    // Nothing
                 });
-        }
+            interaction.editReply({ embeds: [
+                baseEmbed.get(interaction.client)
+                    .setDescription('Skipping the current song'),
+            ] });
 
-        if (!message.member.voice.channel)
-        {
-            return message.channel.send('You have to be in a voice channel to skip music!')
-                .then(msg =>
-                {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
-                });
-        }
+            momentDurationFormatSetup;
+            const song = serverQueue.getSongs(0);
+            const embed = baseEmbed.get(interaction.client)
+                .setDescription(`${interaction.user} skipped the current song`)
+                .setFields([
+                    { name: 'Title', value: `[${song.title}](${song.url})`, inline: true },
+                    { name: 'Duration', value: `${moment.duration(song.duration, 'seconds').format('h:mm:ss').padStart(4, '0:0')}`, inline: true },
+                    { name: 'Added by', value: `${song.user}`, inline: true },
+                ]);
 
-        const serverQueue = bot.queue.get(message.guild.id);
-        if (!serverQueue)
-        {
-            return message.channel.send('There is no song that I could skip!')
-                .then(msg =>
-                {
-                    if (message.guild.me.hasPermission('MANAGE_MESSAGES'))
-                    {
-                        message.delete({ timeout: 5000 });
-                        msg.delete({ timeout: 5000 });
-                    }
-                });
-        }
-
-        if (serverQueue.songs.length === 1)
-            message.channel.send(`Skipped **${serverQueue.songs[0].title}**\n(${serverQueue.songs[0].url}). No more songs in the queue`);
-        else
-            message.channel.send(`Skipped **${serverQueue.songs[0].title}**\n(${serverQueue.songs[0].url})`);
-
-        if (serverQueue.loop === 'all')
-        {
-            serverQueue.connection.dispatcher.end();
-        }
-        else if (serverQueue.loop === 'single')
-        {
-            serverQueue.loop = 'all';
-            serverQueue.connection.dispatcher.end();
-            setTimeout(() =>
+            if (song.thumbnail !== undefined)
             {
-                serverQueue.loop = 'single';
-            }, 100);
+                embed.setThumbnail(song.thumbnail);
+            }
+            interaction.channel.send({ embeds: [embed] })
+                .then(msg =>
+                {
+                    setTimeout(() =>
+                    {
+                        msg?.delete()
+                            .catch(error =>
+                            {
+                                // Nothing
+                            });
+                    }, 10000);
+                })
+                .catch(error =>
+                {
+                    // Nothing
+                });
+            serverQueue?.getPlayer().stop();
         }
         else
         {
-            serverQueue.connection.dispatcher.end();
+            interaction.editReply({ embeds: [
+                baseEmbed.get(interaction.client)
+                    .setDescription('I wasn\'t in a voice channel'),
+            ] });
         }
+    },
+    getCommand()
+    {
+        return baseCommand.get(this);
     },
 };

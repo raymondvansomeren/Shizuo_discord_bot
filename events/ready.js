@@ -1,36 +1,24 @@
-const log = require('../modules/log').log;
-const error = require('../modules/log').error;
+const { ActivityType } = require('discord.js');
+
+const updateSites = require('../modules/updateSites').execute;
 
 module.exports = {
     name: 'ready',
     once: true,
     execute(client)
     {
-        // updateSites(client);
+        updateSites(client);
 
-        client.connection.get('db').query('SELECT Guild, Prefix, ModPrefix FROM guildsettings;',
-            function(e, results)
-            {
-                if (e)
-                {
-                    return error(e);
-                }
+        require('../deploy-commands.js');
 
-                results.forEach(function(r)
-                {
-                    client.prefixes.set(r.Guild, r.Prefix);
-                    client.modPrefixes.set(r.Guild, r.ModPrefix);
-                });
-            });
-
-        log('Ready!');
         client.user.setPresence({
             status: 'online',
-            activity: {
+            activities: [{
                 name: `over ${client.guilds.cache.size} servers`,
                 // PLAYING: WATCHING: LISTENING: STREAMING:
-                type: 'WATCHING',
-            },
+                type: ActivityType.Watching,
+            }],
         });
+        client.logger.info('Fully started!');
     },
 };
