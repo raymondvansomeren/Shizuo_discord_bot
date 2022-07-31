@@ -24,7 +24,11 @@ module.exports = {
             serverQueue.setMessage(await serverQueue.interaction.channel.send({ embeds: [
                 baseEmbed.get(interaction.client)
                     .setDescription(`No more songs to play, leaving voice channel <t:${d}:R>`),
-            ] }));
+            ] })
+                .catch(error =>
+                {
+                    // Nothing
+                }));
             setTimeout(() =>
             {
                 const serverQueue2 = interaction.client.queue.get(interaction.guild.id);
@@ -50,6 +54,10 @@ module.exports = {
                                         // Nothing
                                     });
                             }, 5000);
+                        })
+                        .catch(error =>
+                        {
+                            // Nothing
                         });
 
                     // serverQueue2?.getConnection()?.disconnect();
@@ -82,7 +90,7 @@ module.exports = {
         }
         catch (error)
         {
-            return interaction.client.logger.debug(error);
+            return interaction.client.logger.error(error);
         }
 
         // const dispatcher = serverQueue.connection
@@ -195,6 +203,10 @@ module.exports = {
                     { name: 'Ends', value: `<t:${d}:R>`, inline: true },
                 ])
                 .setThumbnail(song.thumbnail),
-        ] }));
+        ] })
+            .catch(error =>
+            {
+                // Nothing
+            }));
     },
 };

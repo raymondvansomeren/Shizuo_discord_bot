@@ -277,7 +277,7 @@ module.exports = {
                 })
                 .catch(error =>
                 {
-                    // interaction.client.logger.debug(error);
+                    // interaction.client.logger.error(error);
                     return false;
                 });
 
@@ -388,7 +388,7 @@ module.exports = {
                 })
                 .catch(error =>
                 {
-                    // interaction.client.logger.debug(error);
+                    // interaction.client.logger.error(error);
                     return false;
                 });
 
@@ -482,7 +482,11 @@ async function getServerQueue(interaction)
             .setDescription('Trying to join you in a voice channel');
 
         await interaction.editReply({ embeds: [embed], ephemeral: false });
-        // const message = await interaction.channel.send({ embeds: [embed], ephemeral: false });
+        // const message = await interaction.channel.send({ embeds: [embed], ephemeral: false })
+        // .catch(error =>
+        //     {
+        //         // Nothing
+        //     });
         const q = new queueObject(interaction, undefined);
         if (!q.getVoiceChannel()?.joinable)
         {

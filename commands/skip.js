@@ -57,6 +57,10 @@ module.exports = {
                                 // Nothing
                             });
                     }, 10000);
+                })
+                .catch(error =>
+                {
+                    // Nothing
                 });
             serverQueue?.getPlayer().stop();
         }

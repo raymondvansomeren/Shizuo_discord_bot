@@ -47,7 +47,11 @@ module.exports = {
             {
                 embed.setThumbnail(song.thumbnail);
             }
-            serverQueue.setMessage(await interaction.channel.send({ embeds: [embed] }));
+            serverQueue.setMessage(await interaction.channel.send({ embeds: [embed] })
+                .catch(error =>
+                {
+                    // Nothing
+                }));
             serverQueue?.play();
         }
         else

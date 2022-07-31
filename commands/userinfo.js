@@ -48,8 +48,8 @@ module.exports = {
                 .setTitle(`Info about user ${member.user.username}`)
                 .setFields([
                     { name: 'User', value: `<@${member.user.id}>`, inline: true },
-                    { name: 'Created at', value: `<t:${Math.round(member.user.createdTimestamp / 1000)}:F>`, inline: true },
-                    { name: 'Joined at', value: `<t:${Math.round(member.joinedTimestamp / 1000)}:F>`, inline: true },
+                    { name: 'Created at', value: `<t:${Math.round(member.user.createdTimestamp / 1000)}:F> (<t:${Math.round(member.user.createdTimestamp / 1000)}:R>)`, inline: true },
+                    { name: 'Joined at', value: `<t:${Math.round(member.joinedTimestamp / 1000)}:F> (<t:${Math.round(member.joinedTimestamp / 1000)}:R>)`, inline: true },
                     { name: 'ID', value: `${member.id}`, inline: true },
                     { name: 'Avatar', value: `<${member.user.displayAvatarURL({ format: 'png', dynamic: true })}>`, inline: false },
                 ])

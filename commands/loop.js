@@ -48,6 +48,10 @@ module.exports = {
                                             // Nothing
                                         });
                                 }, 10000);
+                            })
+                            .catch(error =>
+                            {
+                                // Nothing
                             });
                         serverQueue?.loopNone();
                         break;
@@ -73,6 +77,10 @@ module.exports = {
                                             // Nothing
                                         });
                                 }, 10000);
+                            })
+                            .catch(error =>
+                            {
+                                // Nothing
                             });
                         serverQueue?.loopSingle();
                         break;
@@ -98,6 +106,10 @@ module.exports = {
                                             // Nothing
                                         });
                                 }, 10000);
+                            })
+                            .catch(error =>
+                            {
+                                // Nothing
                             });
                         serverQueue?.loopQueue();
                         break;

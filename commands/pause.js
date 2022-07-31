@@ -52,7 +52,11 @@ module.exports = {
                 ]);
             }
 
-            serverQueue.setMessage(await interaction.channel.send({ embeds: [embed] }));
+            serverQueue.setMessage(await interaction.channel.send({ embeds: [embed] })
+                .catch(error =>
+                {
+                    // Nothing
+                }));
 
             serverQueue?.pause();
         }

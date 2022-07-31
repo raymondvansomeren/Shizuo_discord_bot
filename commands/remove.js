@@ -19,14 +19,7 @@ module.exports = {
         if (serverQueue
             && getVoiceConnection(interaction.guild.id) !== undefined)
         {
-            serverQueue.getMessage()?.delete()
-                .catch(error =>
-                {
-                    // Nothing
-                });
-
             const index = interaction.options?.data.find(element => element.name === 'index')?.value;
-            interaction.client.logger.debug(index);
             if (!index || index >= serverQueue.getSongs().length)
             {
                 await interaction.editReply({ embeds: [
@@ -36,16 +29,17 @@ module.exports = {
                 return;
             }
 
+            const song = serverQueue.getSongs(index);
             interaction.editReply({ embeds: [
                 baseEmbed.get(interaction.client)
-                    .setDescription(`Removing **[${serverQueue.getSongs(index).title}](${serverQueue.getSongs(index).url})** from the queue`)
-                    .setThumbnail(serverQueue.getSongs(index).thumbnail),
+                    .setDescription(`Removing **[${song.title}](${song.url})** from the queue`)
+                    .setThumbnail(song.thumbnail),
             ] });
 
             interaction.channel.send({ embeds: [
                 baseEmbed.get(interaction.client)
-                    .setDescription(`${interaction.user} skipped the last song`)
-                    .setThumbnail(serverQueue.getSongs(index).thumbnail),
+                    .setDescription(`${interaction.user} removed [${song.title}](${song.url}) from the queue`)
+                    .setThumbnail(song.thumbnail),
             ] })
                 .then(msg =>
                 {
@@ -57,8 +51,14 @@ module.exports = {
                                 // Nothing
                             });
                     }, 10000);
+                })
+                .catch(error =>
+                {
+                    // Nothing
                 });
-            // serverQueue?.stop();
+            const songs = serverQueue.getSongs();
+            songs.splice(index, 1);
+            serverQueue.setSongs(songs);
         }
         else
         {
