@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-* Nodejs (version 12.18.3 or higher) and npm installed
+* Nodejs (version 16.16.0 or higher) and npm installed
 
 ## What to do
 
