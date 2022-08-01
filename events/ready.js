@@ -1,13 +1,14 @@
 const { ActivityType } = require('discord.js');
 
-const updateSites = require('../modules/updateSites').execute;
+
 
 module.exports = {
     name: 'ready',
     once: true,
     execute(client)
     {
-        updateSites(client);
+        const updateSites = require('../modules/updateSites.js').execute;
+        //setTimeout(() => updateSites(client), 5000);
 
         require('../deploy-commands.js');
 

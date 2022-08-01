@@ -6,13 +6,18 @@ module.exports = {
     execute(client)
     {
         if (inDevelopment) return;
+ 
+        //const guilds = parseInt(client?.guilds?.cache?.size);
+        let guilds = client?.guilds?.cache?.size;
 
-        const guilds = client.guilds?.cache?.size;
+	if (guilds === undefined || guilds === null || guilds === "NaN") return console.log('guilds is undefined');
+	guilds = parseInt(guilds);
 
         const topgg = siteTokens.topgg.token;
         axios.post(siteTokens.topgg.url,
             {
-                server_count: guilds,
+                'server_count': guilds,
+		'shards': [],
             },
             {
                 headers:
@@ -24,7 +29,7 @@ module.exports = {
         const discord_bots_gg = siteTokens.discord_bots_gg.token;
         axios.post(siteTokens.discord_bots_gg.url,
             {
-                guildCount: guilds,
+                'guildCount': guilds,
             },
             {
                 headers:
@@ -36,7 +41,7 @@ module.exports = {
         const discordbotlist = siteTokens.discordbotlist.token;
         axios.post(siteTokens.discordbotlist.url,
             {
-                guilds: `${guilds}`,
+                'guilds': guilds,
             },
             {
                 headers:

@@ -29,7 +29,7 @@ if (config.inDevelopment)
 }
 else
 {
-    rest.put(Routes.applicationCommands(config.clientId, config.devServer), { body: commands })
+    rest.put(Routes.applicationCommands(config.clientId), { body: commands })
         .then(() => logger.info('Successfully registered application commands (full).'))
-        .catch((err) => logger.error(err));
+        .catch((err) => logger.error(`full: ${err}`));
 }

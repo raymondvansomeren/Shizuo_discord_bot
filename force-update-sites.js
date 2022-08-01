@@ -1,6 +1,6 @@
 const update = require('./modules/updateSites.js').execute;
 
-const serverCount = 205;
+const serverCount = 210;
 const client = {
     guild: {
         cache: {
