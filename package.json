@@ -10,7 +10,7 @@
     "moment": "^2.29.4",
     "moment-duration-format": "^2.3.2",
     "sodium": "^3.0.2",
-    "ytdl-core": "^4.11.0",
+    "ytdl-core": "^4.11.1",
     "ytpl": "^2.3.0",
     "ytsr": "^3.8.0"
   }
