@@ -76,8 +76,8 @@ module.exports = {
             video = ytdl(song.url,
                 {
                     filter: 'audioonly',
-                    highWaterMark: 1 << 25,
-                    quality: 'highaudio',
+                    highWaterMark: 1 << 27,
+                    quality: 'highestaudio',
                     requestOptions:
                     {
                         headers:
