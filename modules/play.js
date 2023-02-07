@@ -77,7 +77,7 @@ module.exports = {
                 {
                     filter: 'audioonly',
                     highWaterMark: 1 << 25,
-                    quality: 'highestaudio',
+                    quality: 'highaudio',
                     requestOptions:
                     {
                         headers:
