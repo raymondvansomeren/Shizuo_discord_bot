@@ -17,11 +17,12 @@ module.exports = {
         }
         const serverQueue = interaction.client.queue.get(interaction.guild.id);
         // TODO can't find connection after restart
-        interaction.client.logger.debug(getVoiceConnection(interaction.guild.id));
+        interaction.client.logger.debug(interaction.guild.id, getVoiceConnection(interaction.guild.id));
         if (serverQueue
             || getVoiceConnection(interaction.guild.id) !== undefined)
         {
-            serverQueue.getMessage()?.delete()
+            // interaction.client.logger.debug(serverQueue);
+            serverQueue?.getMessage()?.delete()
                 .catch(error =>
                 {
                     // Nothing
@@ -51,6 +52,7 @@ module.exports = {
                     // Nothing
                 });
             serverQueue?.stop();
+            getVoiceConnection(interaction.guild.id)?.disconnect();
         }
         else
         {

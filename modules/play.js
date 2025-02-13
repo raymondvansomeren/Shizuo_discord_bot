@@ -5,7 +5,7 @@ const { createAudioPlayer, NoSubscriberBehavior, createAudioResource, AudioPlaye
 const moment = require('moment');
 const momentDurationFormatSetup = require('moment-duration-format');
 
-const ytdl = require('ytdl-core');
+const ytdl = require('@distube/ytdl-core');
 
 module.exports = {
     play: async function play(interaction, song)
@@ -76,7 +76,7 @@ module.exports = {
             video = ytdl(song.url,
                 {
                     filter: 'audioonly',
-                    highWaterMark: 1 << 27,
+                    highWaterMark: 1 << 25,
                     quality: 'highestaudio',
                     requestOptions:
                     {
@@ -87,7 +87,7 @@ module.exports = {
                             'x-youtube-identity-token': `${interaction.client.config.xyoutubeidentitytoken}`,
                         },
                     },
-                    liveBuffer: 5000,
+                    liveBuffer: 5,
                 });
         }
         catch (error)
@@ -146,7 +146,10 @@ module.exports = {
                 {
                     if (serverQueue.getLoopState() === 'all')
                     {
-                        serverQueue.addSong(serverQueue.getSongs().shift());
+                        if (serverQueue.getSongs().length > 1)
+                        {
+                            serverQueue.addSong(serverQueue.getSongs().shift());
+                        }
                     }
                     else if (serverQueue.getLoopState() === 'single')
                     {

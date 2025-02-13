@@ -1,6 +1,6 @@
 const baseEmbed = require('../modules/base-embed.js');
 
-const { joinVoiceChannel } = require('@discordjs/voice');
+const { joinVoiceChannel, VoiceConnectionStatus } = require('@discordjs/voice');
 const { play } = require('../modules/play.js');
 
 const moment = require('moment');
@@ -94,6 +94,14 @@ module.exports = {
         setConnection(connection)
         {
             this.connection = connection;
+
+            this.connection.on('stateChange', (oldState, newState) =>
+            {
+                //TODO this is a temp fix for https://github.com/discordjs/discord.js/issues/9185 https://discord.com/channels/222078108977594368/1080630348523782184
+                if (oldState.status === VoiceConnectionStatus.Ready && newState.status === VoiceConnectionStatus.Connecting) {
+                    connection.configureNetworking();
+                }
+            });
         }
 
         getSongs(id = undefined)
@@ -198,7 +206,7 @@ module.exports = {
             this.playing = true;
             if (resource !== undefined)
             {
-                this.player.play(resource);
+                this.player.play(resource, { type: 'unknown' });
             }
             else
             {

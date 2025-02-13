@@ -3,7 +3,7 @@ const baseEmbed = require('../modules/base-embed.js');
 
 const { queueObject } = require('../modules/queueConstruct.js');
 
-const ytdl = require('ytdl-core');
+const ytdl = require('@distube/ytdl-core');
 const ytsr = require('ytsr');
 const ytpl = require('ytpl');
 
