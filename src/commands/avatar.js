@@ -1,4 +1,4 @@
-import { SlashCommandBuilder } from 'discord.js';
+import { MessageFlags, SlashCommandBuilder } from 'discord.js';
 
 import { baseEmbed } from '../utils/embeds.js';
 
@@ -22,6 +22,6 @@ export default {
                 .setTitle(`Avatar of ${user.displayName}`)
                 .setURL(url)
                 .setImage(url),
-        ] });
+        ], flags: MessageFlags.Ephemeral });
     },
 };

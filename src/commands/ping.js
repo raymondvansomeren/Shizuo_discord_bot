@@ -1,4 +1,4 @@
-import { SlashCommandBuilder } from 'discord.js';
+import { MessageFlags, SlashCommandBuilder } from 'discord.js';
 
 import { baseEmbed } from '../utils/embeds.js';
 
@@ -9,7 +9,7 @@ export default {
 
     async execute(interaction)
     {
-        const response = await interaction.reply({ embeds: [baseEmbed(interaction.client).setTitle('🏓 Pinging…')], withResponse: true });
+        const response = await interaction.reply({ embeds: [baseEmbed(interaction.client).setTitle('🏓 Pinging…')], flags: MessageFlags.Ephemeral, withResponse: true });
         const roundTrip = response.resource.message.createdTimestamp - interaction.createdTimestamp;
         const gateway = interaction.client.ws.ping;
 

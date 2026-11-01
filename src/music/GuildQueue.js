@@ -20,6 +20,8 @@ export const LoopMode = Object.freeze({ Off: 'off', Track: 'track', Queue: 'queu
 const PREFETCH_BEFORE_END = 20_000;
 // A prefetched stream that waited longer than this (e.g. the music was paused) is reloaded instead
 const PREFETCH_MAX_AGE = 90_000;
+// Notices that aren't a reply to anyone (errors, leaving) are deleted after this long to keep the chat clean
+const NOTICE_LIFETIME = 30_000;
 
 export class GuildQueue
 {
@@ -29,14 +31,15 @@ export class GuildQueue
     current = null;
     loop = LoopMode.Off;
     destroyed = false;
-    nowPlayingMessage = null;
+    /** The now playing message, or the "queue is empty" message while idle. */
+    statusMessage = null;
 
     #starting = false;
     #skipping = false;
     #failed = false;
     #idleTimer = null;
-    /** @type {Promise<import('discord.js').Message | null> | null} */
-    #idleMessage = null;
+    /** Status message updates run one after another so they can't overtake each other */
+    #statusUpdate = Promise.resolve();
     #aloneTimer = null;
     /** @type {{ track: object, resource: Promise<import('@discordjs/voice').AudioResource>, createdAt: number } | null} */
     #prefetch = null;
@@ -65,7 +68,7 @@ export class GuildQueue
             this.#failed = true;
             const track = error.resource.metadata;
             logger.warn(`Playback error in ${this.guild.name} for "${track?.title}": ${error.message}`);
-            this.#send({ embeds: [errorEmbed(this.client, `Something went wrong while playing ${track ? trackLink(track) : 'this track'}, skipping it.`)] });
+            this.#sendNotice({ embeds: [errorEmbed(this.client, `Something went wrong while playing ${track ? trackLink(track) : 'this track'}, skipping it.`)] });
         });
 
         this.connection = joinVoiceChannel({
@@ -194,7 +197,7 @@ export class GuildQueue
         {
             this.#aloneTimer = setTimeout(() =>
             {
-                this.#send({ embeds: [infoEmbed(this.client, 'Everyone left the voice channel, so I left too 👋')] });
+                this.#sendNotice({ embeds: [infoEmbed(this.client, 'Everyone left the voice channel, so I left too 👋')] });
                 this.destroy();
             }, config.music.aloneTimeout);
         }
@@ -225,15 +228,16 @@ export class GuildQueue
         {
             this.client.queues.delete(this.guild.id);
         }
-        this.#clearNowPlayingControls();
+        // The status message is only useful while in voice
+        this.#deleteStatus();
         logger.info(`Left voice in ${this.guild.name}`);
     }
 
     /** Re-renders the now playing message, e.g. after pause/loop changes. */
     async refreshNowPlaying()
     {
-        if (!this.nowPlayingMessage || !this.current) return;
-        await this.nowPlayingMessage.edit({
+        if (!this.statusMessage || !this.current) return;
+        await this.statusMessage.edit({
             embeds: [nowPlayingEmbed(this)],
             components: [controlsRow(this)],
         }).catch(() => undefined);
@@ -295,7 +299,7 @@ export class GuildQueue
                 catch (error)
                 {
                     logger.warn(`[${this.guild.name}] Could not play "${track.title}": ${error.message}`);
-                    await this.#send({ embeds: [errorEmbed(this.client, `Couldn't play ${trackLink(track)}: ${error.message}`)] });
+                    await this.#sendNotice({ embeds: [errorEmbed(this.client, `Couldn't play ${trackLink(track)}: ${error.message}`)] });
                 }
             }
         }
@@ -345,33 +349,79 @@ export class GuildQueue
         prefetch?.resource.then(resource => resource.playStream.destroy(), () => undefined);
     }
 
-    async #sendNowPlaying()
+    #sendNowPlaying()
     {
-        this.#clearNowPlayingControls(true);
-        this.nowPlayingMessage = await this.#send({
+        return this.#showStatus({
             embeds: [nowPlayingEmbed(this)],
             components: [controlsRow(this)],
         });
     }
 
-    /** Removes the buttons from (or deletes) the previous now playing message. */
-    #clearNowPlayingControls(deleteMessage = false)
+    /**
+     * Shows the now playing / idle message. The previous one is edited when it's still the last message
+     * in the channel; otherwise a new one is sent at the bottom and the old one is deleted.
+     */
+    #showStatus(payload)
     {
-        const message = this.nowPlayingMessage;
-        this.nowPlayingMessage = null;
-        if (!message) return;
-        const action = deleteMessage ? message.delete() : message.edit({ components: [] });
-        action.catch(() => undefined);
+        const update = this.#statusUpdate.then(async () =>
+        {
+            if (this.destroyed) return;
+            const previous = this.statusMessage;
+            if (previous && await this.#isLastMessage(previous))
+            {
+                try
+                {
+                    await previous.edit(payload);
+                    return;
+                }
+                catch
+                {
+                    // Deleted in the meantime: send a new one below
+                }
+            }
+
+            const message = await this.#send(payload);
+            if (this.destroyed)
+            {
+                message?.delete().catch(() => undefined);
+                return;
+            }
+            this.statusMessage = message;
+            previous?.delete().catch(() => undefined);
+        });
+        this.#statusUpdate = update.catch(() => undefined);
+        return update;
+    }
+
+    async #isLastMessage(message)
+    {
+        try
+        {
+            const latest = await this.textChannel.messages.fetch({ limit: 1, cache: false });
+            return latest.first()?.id === message.id;
+        }
+        catch
+        {
+            // e.g. missing Read Message History permission
+            return false;
+        }
+    }
+
+    #deleteStatus()
+    {
+        const message = this.statusMessage;
+        this.statusMessage = null;
+        message?.delete().catch(() => undefined);
     }
 
     #startIdleTimer()
     {
         this.#clearIdleTimer();
-        this.#clearNowPlayingControls(true);
         const leaveAt = new Date(Date.now() + config.music.idleTimeout);
-        this.#idleMessage = this.#send({ embeds: [
-            infoEmbed(this.client, `The queue is empty. I'll leave the voice channel ${discordTimestamp(leaveAt)} unless something is added with \`/play\`.`),
-        ] });
+        void this.#showStatus({
+            embeds: [infoEmbed(this.client, `The queue is empty. I'll leave the voice channel ${discordTimestamp(leaveAt)} unless something is added with \`/play\`.`)],
+            components: [],
+        });
         this.#idleTimer = setTimeout(() => this.destroy(), config.music.idleTimeout);
     }
 
@@ -379,9 +429,17 @@ export class GuildQueue
     {
         clearTimeout(this.#idleTimer);
         this.#idleTimer = null;
-        const idleMessage = this.#idleMessage;
-        this.#idleMessage = null;
-        idleMessage?.then(message => message?.delete().catch(() => undefined));
+    }
+
+    /** Sends a message that deletes itself after NOTICE_LIFETIME. */
+    async #sendNotice(payload)
+    {
+        const message = await this.#send(payload);
+        if (message)
+        {
+            setTimeout(() => message.delete().catch(() => undefined), NOTICE_LIFETIME).unref();
+        }
+        return message;
     }
 
     async #send(payload)

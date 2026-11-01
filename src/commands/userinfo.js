@@ -1,4 +1,4 @@
-import { InteractionContextType, SlashCommandBuilder } from 'discord.js';
+import { InteractionContextType, MessageFlags, SlashCommandBuilder } from 'discord.js';
 
 import { baseEmbed, respondError } from '../utils/embeds.js';
 import { discordTimestamp } from '../utils/format.js';
@@ -63,6 +63,6 @@ export default {
             embed.setColor(color);
         }
 
-        await interaction.reply({ embeds: [embed] });
+        await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
     },
 };

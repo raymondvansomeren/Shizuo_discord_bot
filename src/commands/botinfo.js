@@ -1,6 +1,6 @@
 import { createRequire } from 'node:module';
 
-import { SlashCommandBuilder, Team, version as djsVersion } from 'discord.js';
+import { MessageFlags, SlashCommandBuilder, Team, version as djsVersion } from 'discord.js';
 
 import { baseEmbed } from '../utils/embeds.js';
 import { discordTimestamp } from '../utils/format.js';
@@ -37,6 +37,6 @@ export default {
             embed.setFooter({ text: `Bot created by ${owner.username}`, iconURL: owner.displayAvatarURL() });
         }
 
-        await interaction.reply({ embeds: [embed] });
+        await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
     },
 };

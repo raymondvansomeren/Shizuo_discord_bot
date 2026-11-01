@@ -1,4 +1,4 @@
-import { InteractionContextType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 
 import { config } from '../config.js';
 import { logger } from '../logger.js';
@@ -41,7 +41,7 @@ export default {
             return respondError(interaction, `I don't have permission to join and speak in ${voiceChannel}.`);
         }
 
-        await interaction.deferReply();
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         const query = interaction.options.getString('query', true);
         let result;

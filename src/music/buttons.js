@@ -8,8 +8,8 @@ export async function handleMusicButton(interaction)
     if (!access) return;
     const { queue } = access;
 
-    // Buttons on an old now playing message shouldn't control the current track
-    if (!queue.nowPlayingMessage || interaction.message.id !== queue.nowPlayingMessage.id || !queue.current)
+    // Buttons on an old status message shouldn't control the current track
+    if (!queue.statusMessage || interaction.message.id !== queue.statusMessage.id || !queue.current)
     {
         await interaction.update({ components: [] });
         return;

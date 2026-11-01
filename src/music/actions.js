@@ -1,10 +1,12 @@
+import { MessageFlags } from 'discord.js';
+
 import { infoEmbed, trackLink } from '../utils/embeds.js';
 import { LoopMode } from './GuildQueue.js';
 import { LOOP_LABELS } from './ui.js';
 
 /*
  * Actions shared by the slash commands and the now playing buttons.
- * Each returns the description of a public announcement.
+ * Each returns a description of what happened, shown only to the user who did it.
  */
 
 export function togglePause(queue, user)
@@ -44,10 +46,10 @@ export function stop(queue, user)
     return `⏹️ ${user} stopped the music`;
 }
 
-/** Sends a public announcement as the interaction reply and refreshes the now playing message. */
+/** Confirms the action to the user only (ephemeral) and refreshes the now playing message. */
 export async function announce(interaction, queue, description)
 {
-    await interaction.reply({ embeds: [infoEmbed(interaction.client, description)] });
+    await interaction.reply({ embeds: [infoEmbed(interaction.client, description)], flags: MessageFlags.Ephemeral });
     if (!queue.destroyed)
     {
         await queue.refreshNowPlaying();
