@@ -1,0 +1,11 @@
+import { Events } from 'discord.js';
+
+import { logger } from '../logger.js';
+
+export default {
+    name: Events.Error,
+    execute(error)
+    {
+        logger.error('Discord client error:', error);
+    },
+};
