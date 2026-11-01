@@ -1,6 +1,6 @@
 import { createRequire } from 'node:module';
 
-import { MessageFlags, SlashCommandBuilder, Team, version as djsVersion } from 'discord.js';
+import { MessageFlags, SlashCommandBuilder, Team } from 'discord.js';
 
 import { baseEmbed } from '../utils/embeds.js';
 import { discordTimestamp } from '../utils/format.js';
@@ -30,7 +30,7 @@ export default {
                 { name: 'Playing music in', value: `${client.queues.size} server${client.queues.size === 1 ? '' : 's'}`, inline: true },
                 { name: 'Created', value: discordTimestamp(client.user.createdAt, 'D'), inline: true },
                 { name: 'Online since', value: discordTimestamp(startedAt), inline: true },
-                { name: 'Versions', value: `Bot v${pkg.version} • discord.js v${djsVersion} • Node.js ${process.version}` },
+                { name: 'Version', value: `v${pkg.version}`, inline: true },
             );
         if (owner)
         {
