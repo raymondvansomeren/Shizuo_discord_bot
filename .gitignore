@@ -1,3 +1,6 @@
-**/node_modules
-**/old
-**/config.json
+node_modules/
+.env
+config.json
+old/
+.idea/
+*.log
